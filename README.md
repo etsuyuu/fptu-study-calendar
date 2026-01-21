@@ -49,7 +49,7 @@ A Chrome extension that helps FPT University students export their class schedul
 5. **Preview**: Click the preview result button to view your schedule in week or list view
 6. **Export**: Click the export button to download the calendar file, then import it into Google Calendar, Apple Calendar, or Outlook
 
-https://github.com/user-attachments/assets/a1fb4771-dc30-4cf7-94c3-68564c58bb43
+https://github.com/user-attachments/assets/d4d12cd1-3860-4c60-bb10-0af6379ea8cb
 
 ## ⚙️ Settings
 
