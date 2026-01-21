@@ -1,0 +1,18 @@
+# Chrome extension
+*.crx
+*.pem
+
+# Icons (if you want to ignore placeholder icons)
+# icons/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+

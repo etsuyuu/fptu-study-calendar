@@ -1,0 +1,790 @@
+{
+  "extensionName": {
+    "message": "FPTU Study Calendar",
+    "description": "Tên của extension"
+  },
+  "extensionDescription": {
+    "message": "Xuất lịch học từ FPTU FAP sang file .ics để import vào Google Calendar",
+    "description": "Mô tả của extension"
+  },
+  "popupTitle": {
+    "message": "FPTU Study Calendar Exporter",
+    "description": "Tiêu đề popup"
+  },
+  "popupSubtitle": {
+    "message": "Xuất lịch học của bạn",
+    "description": "Phụ đề popup"
+  },
+  "sectionDateRange": {
+    "message": "Khoảng thời gian",
+    "description": "Tiêu đề section khoảng thời gian"
+  },
+  "startDateLabel": {
+    "message": "Ngày bắt đầu",
+    "description": "Nhãn ngày bắt đầu"
+  },
+  "endDateLabel": {
+    "message": "Ngày kết thúc",
+    "description": "Nhãn ngày kết thúc"
+  },
+  "waitTimeLabel": {
+    "message": "Thời gian chờ (ms)",
+    "description": "Nhãn thời gian chờ"
+  },
+  "themeLabel": {
+    "message": "Giao diện",
+    "description": "Nhãn chọn giao diện"
+  },
+  "themeSystem": {
+    "message": "Hệ thống",
+    "description": "Tùy chọn giao diện theo hệ thống"
+  },
+  "themeLight": {
+    "message": "Sáng",
+    "description": "Tùy chọn giao diện sáng"
+  },
+  "themeDark": {
+    "message": "Tối",
+    "description": "Tùy chọn giao diện tối"
+  },
+  "advancedSettings": {
+    "message": "Cài đặt nâng cao",
+    "description": "Tiêu đề cài đặt nâng cao"
+  },
+  "scrapeButton": {
+    "message": "Bắt đầu trích xuất",
+    "description": "Nút bắt đầu trích xuất"
+  },
+  "previewButton": {
+    "message": "Xem lịch học",
+    "description": "Nút xem kết quả"
+  },
+  "exportButton": {
+    "message": "Xuất file .ics",
+    "description": "Nút xuất file"
+  },
+  "progressDefault": {
+    "message": "Sẵn sàng",
+    "description": "Trạng thái mặc định"
+  },
+  "progressInitializing": {
+    "message": "Đang khởi tạo...",
+    "description": "Trạng thái đang khởi tạo"
+  },
+  "progressSending": {
+    "message": "Đang gửi yêu cầu...",
+    "description": "Trạng thái đang gửi yêu cầu"
+  },
+  "progressScraping": {
+    "message": "Đang trích xuất tuần $WEEK$/$TOTAL$...",
+    "description": "Trạng thái đang trích xuất",
+    "placeholders": {
+      "WEEK": {
+        "content": "$1",
+        "example": "3"
+      },
+      "TOTAL": {
+        "content": "$2",
+        "example": "20"
+      }
+    }
+  },
+  "progressSuccess": {
+    "message": "Trích xuất thành công!",
+    "description": "Thông báo thành công"
+  },
+  "progressSuccessWithWeeks": {
+    "message": "Đã trích xuất $1/$2 tuần",
+    "description": "Thông báo thành công với số tuần",
+    "placeholders": {
+      "SUCCESS": {
+        "content": "$1",
+        "example": "15"
+      },
+      "TOTAL": {
+        "content": "$2",
+        "example": "15"
+      }
+    }
+  },
+  "errorPrefix": {
+    "message": "Lỗi:",
+    "description": "Tiền tố thông báo lỗi"
+  },
+  "errorNotLoggedIn": {
+    "message": "Bạn chưa đăng nhập vào FAP. Vui lòng đăng nhập và thử lại.",
+    "description": "Lỗi chưa đăng nhập"
+  },
+  "errorNavigation": {
+    "message": "Không thể điều hướng đến trang lịch học. Vui lòng thử lại.",
+    "description": "Lỗi điều hướng"
+  },
+  "errorDateRequired": {
+    "message": "Vui lòng chọn ngày bắt đầu và ngày kết thúc",
+    "description": "Lỗi thiếu ngày"
+  },
+  "errorDateOrder": {
+    "message": "Ngày bắt đầu phải trước ngày kết thúc",
+    "description": "Lỗi thứ tự ngày"
+  },
+  "errorWaitTimeRequired": {
+    "message": "Vui lòng nhập thời gian chờ",
+    "description": "Lỗi thiếu thời gian chờ"
+  },
+  "errorWaitTimeMin": {
+    "message": "Thời gian chờ phải ít nhất 1000 ms",
+    "description": "Lỗi thời gian chờ quá nhỏ"
+  },
+  "errorWaitTimeMax": {
+    "message": "Thời gian chờ không được vượt quá 10000 ms",
+    "description": "Lỗi thời gian chờ quá lớn"
+  },
+  "errorWaitTimeInvalid": {
+    "message": "Vui lòng sửa thời gian chờ trước khi tiếp tục",
+    "description": "Lỗi thời gian chờ không hợp lệ khi đóng cài đặt"
+  },
+  "confirmReplaceData": {
+    "message": "Đã có dữ liệu lớp học được lưu trữ.\\n\\nNhấn OK để thay thế tất cả dữ liệu cũ.\\nNhấn Cancel để hợp nhất với dữ liệu hiện có.",
+    "description": "Xác nhận thay thế dữ liệu"
+  },
+  "exportNotImplemented": {
+    "message": "Tính năng xuất file .ics sẽ được triển khai trong phiên bản tiếp theo",
+    "description": "Thông báo tính năng chưa có"
+  },
+  "errorUnknown": {
+    "message": "Lỗi không xác định",
+    "description": "Lỗi không xác định"
+  },
+  "overlayTitle": {
+    "message": "Đang trích xuất lịch học",
+    "description": "Tiêu đề overlay trích xuất"
+  },
+  "overlayMessage": {
+    "message": "Đang trích xuất lịch học cho bạn...",
+    "description": "Thông điệp overlay"
+  },
+  "overlayProgress": {
+    "message": "Đang trích xuất tuần $WEEK$/$TOTAL$",
+    "description": "Tiến trình trích xuất trong overlay",
+    "placeholders": {
+      "WEEK": {
+        "content": "$1",
+        "example": "3"
+      },
+      "TOTAL": {
+        "content": "$2",
+        "example": "20"
+      }
+    }
+  },
+  "overlayComplete": {
+    "message": "Trích xuất hoàn tất!",
+    "description": "Thông báo hoàn tất trong overlay"
+  },
+  "overlayCompleteWithWeeks": {
+    "message": "Đã trích xuất $1/$2 tuần",
+    "description": "Thông báo hoàn tất trong overlay với số tuần",
+    "placeholders": {
+      "SUCCESS": {
+        "content": "$1",
+        "example": "15"
+      },
+      "TOTAL": {
+        "content": "$2",
+        "example": "15"
+      }
+    }
+  },
+  "overlayDismiss": {
+    "message": "Đóng",
+    "description": "Nút đóng overlay"
+  },
+  "classRelocated": {
+    "message": "Đổi slot",
+    "description": "Badge hiển thị khi lớp đã được đổi slot"
+  },
+  "classEduNext": {
+    "message": "EduNext",
+    "description": "Link đến EduNext"
+  },
+  "classMaterials": {
+    "message": "Tài liệu",
+    "description": "Link đến tài liệu học tập"
+  },
+  "viewWeek": {
+    "message": "Tuần",
+    "description": "Nút chuyển sang chế độ xem tuần"
+  },
+  "viewList": {
+    "message": "Danh sách",
+    "description": "Nút chuyển sang chế độ xem danh sách"
+  },
+  "exportIcs": {
+    "message": "Xuất file .ics",
+    "description": "Nút xuất file .ics"
+  },
+  "prevWeek": {
+    "message": "Tuần trước",
+    "description": "Nút chuyển sang tuần trước"
+  },
+  "nextWeek": {
+    "message": "Tuần sau",
+    "description": "Nút chuyển sang tuần sau"
+  },
+  "today": {
+    "message": "Hôm nay",
+    "description": "Nút chuyển đến tuần hiện tại"
+  },
+  "sidebarOverview": {
+    "message": "Tổng quan",
+    "description": "Tiêu đề phần tổng quan trong sidebar"
+  },
+  "sidebarTotalClasses": {
+    "message": "Tổng số lớp",
+    "description": "Nhãn tổng số lớp học"
+  },
+  "sidebarBySubject": {
+    "message": "Theo môn học",
+    "description": "Tiêu đề phần theo môn học trong sidebar"
+  },
+  "sidebarFilter": {
+    "message": "Lọc",
+    "description": "Tiêu đề phần lọc trong sidebar"
+  },
+  "filterSubject": {
+    "message": "Môn học",
+    "description": "Nhãn bộ lọc môn học"
+  },
+  "filterStatus": {
+    "message": "Trạng thái",
+    "description": "Nhãn bộ lọc trạng thái"
+  },
+  "filterAll": {
+    "message": "Tất cả",
+    "description": "Tùy chọn 'Tất cả' trong bộ lọc"
+  },
+  "filterOnline": {
+    "message": "Trực tuyến",
+    "description": "Tùy chọn 'Trực tuyến' trong bộ lọc"
+  },
+  "filterOffline": {
+    "message": "Trực tiếp",
+    "description": "Tùy chọn 'Trực tiếp' trong bộ lọc"
+  },
+  "emptyState": {
+    "message": "Không có lớp học nào",
+    "description": "Thông báo khi không có lớp học"
+  },
+  "daySunday": {
+    "message": "Chủ nhật",
+    "description": "Tên ngày Chủ nhật"
+  },
+  "dayMonday": {
+    "message": "Thứ hai",
+    "description": "Tên ngày Thứ hai"
+  },
+  "dayTuesday": {
+    "message": "Thứ ba",
+    "description": "Tên ngày Thứ ba"
+  },
+  "dayWednesday": {
+    "message": "Thứ tư",
+    "description": "Tên ngày Thứ tư"
+  },
+  "dayThursday": {
+    "message": "Thứ năm",
+    "description": "Tên ngày Thứ năm"
+  },
+  "dayFriday": {
+    "message": "Thứ sáu",
+    "description": "Tên ngày Thứ sáu"
+  },
+  "daySaturday": {
+    "message": "Thứ bảy",
+    "description": "Tên ngày Thứ bảy"
+  },
+  "editModalTitle": {
+    "message": "Chỉnh sửa lớp học",
+    "description": "Tiêu đề modal chỉnh sửa lớp học"
+  },
+  "editSubjectCode": {
+    "message": "Mã môn học:",
+    "description": "Nhãn mã môn học trong form chỉnh sửa"
+  },
+  "editDate": {
+    "message": "Ngày:",
+    "description": "Nhãn ngày trong form chỉnh sửa"
+  },
+  "editTimeStart": {
+    "message": "Giờ bắt đầu:",
+    "description": "Nhãn giờ bắt đầu trong form chỉnh sửa"
+  },
+  "editTimeEnd": {
+    "message": "Giờ kết thúc:",
+    "description": "Nhãn giờ kết thúc trong form chỉnh sửa"
+  },
+  "editLocation": {
+    "message": "Địa điểm:",
+    "description": "Nhãn địa điểm trong form chỉnh sửa"
+  },
+  "editMeetUrl": {
+    "message": "Meet URL:",
+    "description": "Nhãn Meet URL trong form chỉnh sửa"
+  },
+  "editStatus": {
+    "message": "Trạng thái:",
+    "description": "Nhãn trạng thái trong form chỉnh sửa"
+  },
+  "statusNotYet": {
+    "message": "Chưa diễn ra",
+    "description": "Trạng thái 'Chưa diễn ra'"
+  },
+  "statusAttended": {
+    "message": "Đã tham gia",
+    "description": "Trạng thái 'Đã tham gia'"
+  },
+  "statusAbsent": {
+    "message": "Vắng mặt",
+    "description": "Trạng thái 'Vắng mặt'"
+  },
+  "buttonDelete": {
+    "message": "Xóa",
+    "description": "Nút xóa"
+  },
+  "buttonCancel": {
+    "message": "Hủy",
+    "description": "Nút hủy"
+  },
+  "buttonSave": {
+    "message": "Lưu",
+    "description": "Nút lưu"
+  },
+  "confirmDeleteClass": {
+    "message": "Bạn có chắc chắn muốn xóa lớp học này?",
+    "description": "Xác nhận xóa lớp học"
+  },
+  "aboutTitle": {
+    "message": "Giới thiệu",
+    "description": "Tiêu đề phần giới thiệu"
+  },
+  "aboutVersionLabel": {
+    "message": "Phiên bản:",
+    "description": "Nhãn phiên bản"
+  },
+  "aboutAuthorLabel": {
+    "message": "Tác giả:",
+    "description": "Nhãn tác giả"
+  },
+  "aboutGitHubLabel": {
+    "message": "GitHub:",
+    "description": "Nhãn GitHub"
+  },
+  "aboutHelpLabel": {
+    "message": "Hỗ trợ:",
+    "description": "Nhãn hỗ trợ"
+  },
+  "aboutGitHubValue": {
+    "message": "sắp ra mắt",
+    "description": "Giá trị GitHub (coming soon)"
+  },
+  "icsLocationLabel": {
+    "message": "Lớp học",
+    "description": "Nhãn địa điểm trong mô tả .ics"
+  },
+  "icsRelocatedWarning": {
+    "message": "⚠️ Lớp học này đã được đổi slot",
+    "description": "Cảnh báo lớp học đã đổi slot trong mô tả .ics"
+  },
+  "icsSummaryRelocated": {
+    "message": "Đổi slot",
+    "description": "Nhãn lớp học đã đổi slot trong tiêu đề sự kiện .ics"
+  },
+  "icsMeetLabel": {
+    "message": "Google Meet",
+    "description": "Nhãn Google Meet trong mô tả .ics"
+  },
+  "icsHasEduNext": {
+    "message": "* Có thảo luận trên EduNext",
+    "description": "Thông báo có thảo luận trên EduNext trong mô tả .ics"
+  },
+  "icsHasMaterials": {
+    "message": "* Có tài liệu trên FLM",
+    "description": "Thông báo có tài liệu trên FLM trong mô tả .ics"
+  },
+  "icsViewLinksNote": {
+    "message": "(Vui lòng xem lịch trên FAP để xem rõ link)",
+    "description": "Ghi chú xem link trên FAP trong mô tả .ics"
+  },
+  "helpTitle": {
+    "message": "Hướng dẫn sử dụng",
+    "description": "Tiêu đề modal hướng dẫn"
+  },
+  "helpSectionGettingStarted": {
+    "message": "Bắt đầu",
+    "description": "Tiêu đề phần bắt đầu trong hướng dẫn"
+  },
+  "helpStep1": {
+    "message": "Đảm bảo bạn đã đăng nhập vào FAP (fap.fpt.edu.vn)",
+    "description": "Bước 1 trong hướng dẫn"
+  },
+  "helpStep2": {
+    "message": "Chọn khoảng thời gian bạn muốn trích xuất lịch học",
+    "description": "Bước 2 trong hướng dẫn"
+  },
+  "helpStep3": {
+    "message": "Nhấn nút \"Bắt đầu trích xuất\" để bắt đầu quá trình",
+    "description": "Bước 3 trong hướng dẫn"
+  },
+  "helpStep4": {
+    "message": "Chờ quá trình trích xuất hoàn tất (có thể mất vài phút)",
+    "description": "Bước 4 trong hướng dẫn"
+  },
+  "helpSectionFeatures": {
+    "message": "Tính năng",
+    "description": "Tiêu đề phần tính năng trong hướng dẫn"
+  },
+  "helpFeature1": {
+    "message": "<strong>Xem lịch học:</strong> Xem và chỉnh sửa lịch học đã trích xuất",
+    "description": "Tính năng 1 trong hướng dẫn"
+  },
+  "helpFeature2": {
+    "message": "<strong>Xuất file .ics:</strong> Xuất lịch học ra file .ics để import vào Google Calendar, Outlook, hoặc các ứng dụng lịch khác",
+    "description": "Tính năng 2 trong hướng dẫn"
+  },
+  "helpFeature3": {
+    "message": "<strong>Chỉnh sửa:</strong> Chỉnh sửa thông tin lớp học, thêm link Google Meet, và cập nhật trạng thái",
+    "description": "Tính năng 3 trong hướng dẫn"
+  },
+  "helpSectionTips": {
+    "message": "Mẹo sử dụng",
+    "description": "Tiêu đề phần mẹo trong hướng dẫn"
+  },
+  "helpTip1": {
+    "message": "Khoảng thời gian tối đa là 1 năm (365 ngày)",
+    "description": "Mẹo 1 trong hướng dẫn"
+  },
+  "helpTip2": {
+    "message": "Bạn có thể trích xuất lịch học trong quá khứ hoặc tương lai",
+    "description": "Mẹo 2 trong hướng dẫn"
+  },
+  "helpTip3": {
+    "message": "Sau khi trích xuất, bạn có thể xem và chỉnh sửa lịch học trước khi xuất file",
+    "description": "Mẹo 3 trong hướng dẫn"
+  },
+  "helpTip4": {
+    "message": "File .ics có thể được import vào hầu hết các ứng dụng lịch phổ biến",
+    "description": "Mẹo 4 trong hướng dẫn"
+  },
+  "helpTipsNotice": {
+    "message": "Hãy cuộn xuống để xem các mẹo sử dụng quan trọng giúp bạn tránh các vấn đề phổ biến.",
+    "description": "Thông báo nhắc người dùng đọc phần mẹo sử dụng"
+  },
+  "helpTip5": {
+    "message": "<strong>💡 Mẹo quan trọng:</strong> Tạo một lịch riêng biệt (ví dụ: 'FPTU Schedule') trong ứng dụng lịch của bạn để lưu trữ các lớp học được xuất. Vì lịch học trên FAP thay đổi thường xuyên, việc nhập lại dữ liệu có thể tạo ra sự kiện trùng lặp.",
+    "description": "Mẹo 5 trong hướng dẫn - Khuyến nghị tạo lịch riêng biệt để tránh trùng lặp"
+  },
+  "helpSectionTroubleshooting": {
+    "message": "Khắc phục sự cố",
+    "description": "Tiêu đề phần khắc phục sự cố trong hướng dẫn"
+  },
+  "helpTrouble1": {
+    "message": "<strong>Lỗi \"Bạn chưa đăng nhập\":</strong> Đảm bảo bạn đã đăng nhập vào FAP trong tab hiện tại",
+    "description": "Khắc phục sự cố 1 trong hướng dẫn"
+  },
+  "helpTrouble2": {
+    "message": "<strong>Trích xuất thất bại:</strong> Thử tăng \"Thời gian chờ\" trong cài đặt nâng cao",
+    "description": "Khắc phục sự cố 2 trong hướng dẫn"
+  },
+  "helpTrouble3": {
+    "message": "<strong>Không có dữ liệu:</strong> Kiểm tra lại khoảng thời gian đã chọn và đảm bảo có lịch học trong khoảng thời gian đó",
+    "description": "Khắc phục sự cố 3 trong hướng dẫn"
+  },
+  "helpTrouble4": {
+    "message": "<strong>Lỗi khác:</strong> Thử tải lại trang và thử lại. Nếu vấn đề vẫn tiếp tục, vui lòng gửi yêu cầu hỗ trợ",
+    "description": "Khắc phục sự cố 4 trong hướng dẫn"
+  },
+  "helpSectionSupport": {
+    "message": "Cần hỗ trợ thêm?",
+    "description": "Tiêu đề phần hỗ trợ trong hướng dẫn"
+  },
+  "helpSupportMessage": {
+    "message": "Nếu bạn gặp vấn đề hoặc có câu hỏi, vui lòng gửi yêu cầu hỗ trợ qua:",
+    "description": "Thông điệp hỗ trợ trong hướng dẫn"
+  },
+  "helpSupportGitHub": {
+    "message": "GitHub Issues",
+    "description": "Link GitHub Issues"
+  },
+  "helpSupportEmail": {
+    "message": "Email cá nhân",
+    "description": "Email hỗ trợ"
+  },
+  "footerMadeBy": {
+    "message": "Được tạo bởi BV. Dũng.",
+    "description": "Text trong footer về tác giả"
+  },
+  "footerHelpLink": {
+    "message": "Xem hướng dẫn",
+    "description": "Link xem hướng dẫn trong footer"
+  },
+  "clearCalendarData": {
+    "message": "Xóa lịch học",
+    "description": "Nút xóa tất cả dữ liệu lịch học"
+  },
+  "confirmClearCalendarData": {
+    "message": "Bạn có chắc chắn muốn xóa tất cả dữ liệu lịch học?\n\nHành động này không thể hoàn tác.",
+    "description": "Xác nhận xóa tất cả dữ liệu lịch học"
+  },
+  "buyMeACoffee": {
+    "message": "Mua giúp tôi một cốc cà phê",
+    "description": "Nút quyên góp Buy Me a Coffee"
+  },
+  "donationAppreciated": {
+    "message": "Nếu extension này có giúp ích cho bạn, một cốc cà phê ủng hộ từ bạn sẽ là động lực rất lớn đối với mình ☕️",
+    "description": "Văn bản giới thiệu cho nút quyên góp"
+  },
+  "scrapeModeLabel": {
+    "message": "Chế độ trích xuất",
+    "description": "Nhãn cho bộ chọn chế độ trích xuất"
+  },
+  "fastModeLabel": {
+    "message": "Nhanh",
+    "description": "Nhãn cho chế độ nhanh"
+  },
+  "modeBadgeFast": {
+    "message": "Khuyên dùng",
+    "description": "Huy hiệu cho chế độ nhanh (khuyên dùng)"
+  },
+  "detailedModeLabel": {
+    "message": "Chi tiết",
+    "description": "Nhãn cho chế độ chi tiết"
+  },
+  "fastModeDesc": {
+    "message": "Theo kỳ học • Nhanh chóng",
+    "description": "Mô tả chế độ nhanh"
+  },
+  "detailedModeDesc": {
+    "message": "Theo tuần • Đầy đủ thông tin",
+    "description": "Mô tả chế độ chi tiết"
+  },
+  "semesterLabel": {
+    "message": "Chọn kỳ học",
+    "description": "Nhãn cho bộ chọn kỳ học"
+  },
+  "loadingSemesters": {
+    "message": "Đang tải danh sách kỳ học...",
+    "description": "Văn bản đang tải kỳ học"
+  },
+  "refreshCacheTooltip": {
+    "message": "Làm mới danh sách kỳ học",
+    "description": "Tooltip cho nút làm mới cache"
+  },
+  "errorNoSemesterSelected": {
+    "message": "Vui lòng chọn kỳ học",
+    "description": "Lỗi khi chưa chọn kỳ học"
+  },
+  "errorLoadingSemesters": {
+    "message": "Không thể tải danh sách kỳ học",
+    "description": "Lỗi khi tải danh sách kỳ học thất bại"
+  },
+  "modeDifferenceWarning": {
+    "message": "Chế độ trích xuất khác với dữ liệu cũ. Dữ liệu mới sẽ được ưu tiên, một số thông tin có thể bị mất.",
+    "description": "Cảnh báo khi chế độ trích xuất khác nhau"
+  },
+  "mergeReplaceTitle": {
+    "message": "Dữ liệu đã tồn tại",
+    "description": "Tiêu đề hộp thoại gộp/thay thế"
+  },
+  "mergeReplaceMessage": {
+    "message": "Bạn đã có dữ liệu lịch học. Bạn muốn:",
+    "description": "Thông điệp hộp thoại gộp/thay thế"
+  },
+  "mergeOption": {
+    "message": "Gộp dữ liệu",
+    "description": "Tùy chọn gộp dữ liệu"
+  },
+  "replaceOption": {
+    "message": "Thay thế hoàn toàn",
+    "description": "Tùy chọn thay thế dữ liệu"
+  },
+  "cancelOption": {
+    "message": "Hủy",
+    "description": "Tùy chọn hủy"
+  },
+  "fastModeErrorTitle": {
+    "message": "Lỗi chế độ nhanh",
+    "description": "Tiêu đề overlay lỗi chế độ nhanh"
+  },
+  "fastModeErrorSuggestion": {
+    "message": "Bạn có thể thử lại bằng chế độ chi tiết để có kết quả tốt hơn.",
+    "description": "Gợi ý khi lỗi chế độ nhanh"
+  },
+  "retryDetailedMode": {
+    "message": "Thử lại với chế độ chi tiết",
+    "description": "Nút thử lại với chế độ chi tiết"
+  },
+  "dismissError": {
+    "message": "Đóng",
+    "description": "Nút đóng lỗi"
+  },
+  "errorNoCoursesFound": {
+    "message": "Không tìm thấy môn học nào trong kỳ này",
+    "description": "Lỗi không tìm thấy môn học"
+  },
+  "errorAttendanceUnavailable": {
+    "message": "Không thể truy cập trang điểm danh",
+    "description": "Lỗi không thể truy cập trang điểm danh"
+  },
+  "errorParseFailed": {
+    "message": "Lỗi xử lý dữ liệu từ trang",
+    "description": "Lỗi xử lý dữ liệu"
+  },
+  "errorNetwork": {
+    "message": "Lỗi kết nối mạng",
+    "description": "Lỗi kết nối mạng"
+  },
+  "progressFastMode": {
+    "message": "Đang trích xuất (chế độ nhanh)...",
+    "description": "Văn bản tiến trình chế độ nhanh"
+  },
+  "progressDetailedMode": {
+    "message": "Đang trích xuất (chế độ chi tiết)...",
+    "description": "Văn bản tiến trình chế độ chi tiết"
+  },
+  "fastModeTitle": {
+    "message": "Trích xuất nhanh",
+    "description": "Tiêu đề overlay chế độ nhanh"
+  },
+  "fastModeMessage": {
+    "message": "Đang trích xuất lịch học từ trang điểm danh...",
+    "description": "Thông điệp overlay chế độ nhanh"
+  },
+  "fastModeProgress": {
+    "message": "Đang tải môn $1/$2",
+    "description": "Tiến trình tải môn học",
+    "placeholders": {
+      "1": {
+        "content": "$1",
+        "example": "3"
+      },
+      "2": {
+        "content": "$2",
+        "example": "8"
+      }
+    }
+  },
+  "fastModeComplete": {
+    "message": "Đã tải $1 buổi học",
+    "description": "Hoàn thành chế độ nhanh",
+    "placeholders": {
+      "1": {
+        "content": "$1",
+        "example": "45"
+      }
+    }
+  },
+  "mixedModeInfo": {
+    "message": "Lịch học bao gồm dữ liệu từ cả hai chế độ trích xuất",
+    "description": "Thông báo dữ liệu hỗn hợp"
+  },
+  "refreshCacheButton": {
+    "message": "Làm mới cache",
+    "description": "Nút làm mới cache trong cài đặt"
+  },
+  "helpSectionModes": {
+    "message": "Chế độ trích xuất",
+    "description": "Tiêu đề phần so sánh chế độ trích xuất trong hướng dẫn"
+  },
+  "helpModeFastTitle": {
+    "message": "<strong>Chế độ Nhanh:</strong>",
+    "description": "Tiêu đề của chế độ nhanh trong hướng dẫn"
+  },
+  "helpModeFastDescription": {
+    "message": "Trích xuất lịch học theo từng kỳ học. Nhanh chóng, đơn giản, thích hợp cho hầu hết người dùng.",
+    "description": "Mô tả chế độ nhanh"
+  },
+  "helpModeFastUses": {
+    "message": "Tốt cho: Trích xuất toàn bộ lịch học của một kỳ học, cập nhật nhanh chóng",
+    "description": "Trường hợp sử dụng chế độ nhanh"
+  },
+  "helpModeDetailedTitle": {
+    "message": "<strong>Chế độ Chi tiết:</strong>",
+    "description": "Tiêu đề của chế độ chi tiết trong hướng dẫn"
+  },
+  "helpModeDetailedDescription": {
+    "message": "Trích xuất lịch học theo từng tuần trong khoảng thời gian được chọn. Cung cấp thông tin chi tiết hơn, phù hợp với nhu cầu cụ thể.",
+    "description": "Mô tả chế độ chi tiết"
+  },
+  "helpModeDetailedUses": {
+    "message": "Tốt cho: Trích xuất một khoảng thời gian cụ thể (ví dụ: tháng 3 - tháng 5), so sánh lịch giữa các kỳ học",
+    "description": "Trường hợp sử dụng chế độ chi tiết"
+  },
+  "errorDateRangeEmpty": {
+    "message": "Vui lòng chọn ngày bắt đầu và ngày kết thúc",
+    "description": "Lỗi khi chưa chọn ngày"
+  },
+  "errorDateRangeInvalid": {
+    "message": "Định dạng ngày không hợp lệ",
+    "description": "Lỗi định dạng ngày"
+  },
+  "errorStartAfterEnd": {
+    "message": "Ngày bắt đầu phải trước ngày kết thúc",
+    "description": "Lỗi ngày bắt đầu sau ngày kết thúc"
+  },
+  "errorDateRangeTooLarge": {
+    "message": "Khoảng thời gian không được vượt quá 1 năm (365 ngày)",
+    "description": "Lỗi khoảng thời gian quá dài"
+  },
+  "errorDateRangeTooSmall": {
+    "message": "Khoảng thời gian phải ít nhất 1 ngày",
+    "description": "Lỗi khoảng thời gian quá ngắn"
+  },
+  "errorNoDataToExport": {
+    "message": "Không có dữ liệu lớp học để xuất. Vui lòng trích xuất lịch học trước.",
+    "description": "Lỗi khi không có dữ liệu để xuất"
+  },
+  "errorExportFailed": {
+    "message": "Lỗi xuất file: $ERROR$",
+    "description": "Lỗi khi xuất file thất bại",
+    "placeholders": {
+      "ERROR": {
+        "content": "$1",
+        "example": "Network error"
+      }
+    }
+  },
+  "errorClearDataFailed": {
+    "message": "Lỗi xóa dữ liệu: $ERROR$",
+    "description": "Lỗi khi xóa dữ liệu thất bại",
+    "placeholders": {
+      "ERROR": {
+        "content": "$1",
+        "example": "Storage error"
+      }
+    }
+  },
+  "errorTimeout": {
+    "message": "Timeout: Không nhận được phản hồi sau 30 giây. Vui lòng kiểm tra console của background script.",
+    "description": "Lỗi timeout"
+  },
+  "errorNoResponse": {
+    "message": "Không nhận được phản hồi từ extension. Vui lòng kiểm tra console của background script.",
+    "description": "Lỗi không nhận được phản hồi"
+  },
+  "exportSuccessMessage": {
+    "message": "Đã xuất $COUNT$ lớp học thành công!",
+    "description": "Thông báo xuất file thành công",
+    "placeholders": {
+      "COUNT": {
+        "content": "$1",
+        "example": "25"
+      }
+    }
+  },
+  "emptyStateExtractFirst": {
+    "message": "Vui lòng trích xuất lịch học trước.",
+    "description": "Thông báo yêu cầu trích xuất lịch học"
+  }
+}
+
+

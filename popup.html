@@ -1,0 +1,1304 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-i18n="popupTitle">FPTU Study Calendar Exporter</title>
+  <style>
+    /* ========================================
+       DESIGN SYSTEM - CSS VARIABLES
+       ======================================== */
+    
+    :root {
+      /* Neutral Color Palette */
+      --color-gray-50: #fafafa;
+      --color-gray-100: #f5f5f5;
+      --color-gray-200: #e5e5e5;
+      --color-gray-300: #d4d4d4;
+      --color-gray-400: #a3a3a3;
+      --color-gray-500: #737373;
+      --color-gray-600: #525252;
+      --color-gray-700: #404040;
+      --color-gray-800: #262626;
+      --color-gray-900: #171717;
+      
+      /* Vibrant Color Palette (Tailwind/Material inspired) */
+      --color-primary: #10b981;        /* Emerald 500 - fresh green */
+      --color-primary-hover: #059669;  /* Emerald 600 */
+      --color-primary-light: #d1fae5;  /* Emerald 100 */
+      
+      --color-secondary: #6366f1;     /* Indigo 500 */
+      --color-secondary-hover: #4f46e5; /* Indigo 600 */
+      --color-secondary-light: #e0e7ff; /* Indigo 100 */
+      
+      --color-accent: #0ea5e9;         /* Sky 500 */
+      --color-accent-hover: #0284c7;   /* Sky 600 */
+      --color-accent-light: #e0f2fe;   /* Sky 100 */
+      
+      --color-success: #10b981;        /* Emerald 500 */
+      --color-success-light: #d1fae5; /* Emerald 100 */
+      
+      --color-error: #f43f5e;          /* Rose 500 */
+      --color-error-light: #ffe4e6;    /* Rose 100 */
+      
+      /* Semantic Colors */
+      --color-background: #ffffff;
+      --color-surface: #ffffff;
+      --color-border: var(--color-gray-200);
+      --color-text-primary: var(--color-gray-900);
+      --color-text-secondary: var(--color-gray-600);
+      --color-text-tertiary: var(--color-gray-500);
+      --color-text-muted: var(--color-gray-400);
+      
+      /* Spacing Scale (4px base unit) */
+      --space-xs: 4px;
+      --space-sm: 8px;
+      --space-md: 16px;
+      --space-lg: 20px;
+      --space-xl: 24px;
+      --space-2xl: 32px;
+      
+      /* Typography Scale */
+      --font-size-xs: 11px;
+      --font-size-sm: 13px;
+      --font-size-base: 14px;
+      --font-size-md: 16px;
+      --font-size-lg: 18px;
+      --font-size-xl: 20px;
+      
+      --font-weight-normal: 400;
+      --font-weight-medium: 500;
+      --font-weight-semibold: 600;
+      --font-weight-bold: 700;
+      
+      /* Line Heights */
+      --line-height-tight: 1.2;
+      --line-height-normal: 1.5;
+      
+      /* Border */
+      --border-width: 1px;
+      --border-radius-sm: 6px;
+      --border-radius-md: 10px;
+      --border-radius-lg: 12px;
+      
+      /* Transitions */
+      --transition-fast: 0.15s ease;
+      --transition-base: 0.2s ease;
+    }
+
+    /* ========================================
+       DARK THEME
+       ======================================== */
+    
+    [data-theme="dark"] {
+      /* Neutral Charcoal Palette - Dark Theme */
+      --color-background: #1f1f1f;
+      --color-surface: #262626;
+      --color-border: rgba(255, 255, 255, 0.1);
+      
+      /* Text Colors - High Contrast, Neutral */
+      --color-text-primary: #e8e8e8;
+      --color-text-secondary: #b8b8b8;
+      --color-text-tertiary: #909090;
+      --color-text-muted: #707070;
+      
+      /* Adjust vibrant colors for dark mode - Subtle tints on charcoal */
+      --color-primary-light: rgba(16, 185, 129, 0.18);
+      --color-secondary-light: rgba(99, 102, 241, 0.18);
+      --color-accent-light: rgba(14, 165, 233, 0.18);
+      --color-success-light: rgba(16, 185, 129, 0.18);
+      --color-error-light: rgba(244, 63, 94, 0.18);
+    }
+
+    /* System theme detection */
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme]) {
+        /* Neutral Charcoal Palette - Dark Theme */
+        --color-background: #1f1f1f;
+        --color-surface: #262626;
+        --color-border: rgba(255, 255, 255, 0.1);
+        
+        /* Text Colors - High Contrast, Neutral */
+        --color-text-primary: #e8e8e8;
+        --color-text-secondary: #b8b8b8;
+        --color-text-tertiary: #909090;
+        --color-text-muted: #707070;
+        
+        /* Adjust vibrant colors for dark mode - Subtle tints on charcoal */
+        --color-primary-light: rgba(16, 185, 129, 0.18);
+        --color-secondary-light: rgba(99, 102, 241, 0.18);
+        --color-accent-light: rgba(14, 165, 233, 0.18);
+        --color-success-light: rgba(16, 185, 129, 0.18);
+        --color-error-light: rgba(244, 63, 94, 0.18);
+      }
+    }
+
+    /* ========================================
+       RESET & BASE STYLES
+       ======================================== */
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+  body {
+    width: 320px;
+    min-height: auto;
+    max-height: 500px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: var(--color-background);
+    color: var(--color-text-primary);
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-normal);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+    /* ========================================
+       HEADER SECTION
+       ======================================== */
+    
+    .header {
+      padding: var(--space-md) var(--space-md);
+      border-bottom: var(--border-width) solid var(--color-border);
+      background: var(--color-primary-light);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    [data-theme="dark"] .header {
+      background: rgba(16, 185, 129, 0.12);
+    }
+
+    .header-content {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+    }
+
+    .header-icon {
+      width: calc(var(--font-size-md) * var(--line-height-tight) + 2px + var(--font-size-xs) * var(--line-height-normal));
+      height: calc(var(--font-size-md) * var(--line-height-tight) + 2px + var(--font-size-xs) * var(--line-height-normal));
+      flex-shrink: 0;
+      margin-right: 5px;
+    }
+
+    .header h1 {
+      font-size: var(--font-size-md);
+      font-weight: var(--font-weight-semibold);
+      color: var(--color-text-primary);
+      line-height: var(--line-height-tight);
+      letter-spacing: -0.01em;
+    }
+
+    .header-subtitle {
+      font-size: var(--font-size-xs);
+      color: var(--color-text-secondary);
+      margin-top: 2px;
+      font-weight: var(--font-weight-normal);
+    }
+
+    .header-actions {
+      display: flex;
+      gap: var(--space-xs);
+    }
+
+    .btn-icon {
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: var(--border-width) solid var(--color-border);
+      background: var(--color-surface);
+      border-radius: var(--border-radius-sm);
+      cursor: pointer;
+      transition: all var(--transition-base);
+    }
+
+    .btn-icon {
+      color: var(--color-text-secondary);
+    }
+
+    .btn-icon:hover:not(:disabled) {
+      background: var(--color-gray-50);
+      border-color: var(--color-gray-300);
+      color: var(--color-text-primary);
+    }
+
+    [data-theme="dark"] .btn-icon:hover:not(:disabled) {
+      background: #2f2f2f;
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .btn-icon svg {
+      width: 16px;
+      height: 16px;
+      fill: currentColor;
+    }
+
+    /* ========================================
+       MAIN CONTENT
+       ======================================== */
+    
+    .content {
+      padding: var(--space-lg) var(--space-md);
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .section {
+      margin-bottom: var(--space-lg);
+    }
+
+    .section:last-child {
+      margin-bottom: 0;
+    }
+
+    .section-header {
+      font-size: var(--font-size-xs);
+      font-weight: var(--font-weight-semibold);
+      color: var(--color-text-secondary);
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* ========================================
+       FORM ELEMENTS
+       ======================================== */
+    
+    .form-group {
+      margin-bottom: var(--space-sm);
+    }
+
+    .form-group:last-child {
+      margin-bottom: 0;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: var(--font-size-xs);
+      color: var(--color-text-primary);
+      font-weight: var(--font-weight-medium);
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 6px var(--space-sm);
+      border: var(--border-width) solid var(--color-border);
+      border-radius: var(--border-radius-sm);
+      background: var(--color-surface);
+      font-size: var(--font-size-sm);
+      color: var(--color-text-primary);
+      font-family: inherit;
+      transition: border-color var(--transition-base);
+    }
+
+    .form-group input::placeholder {
+      color: var(--color-text-muted);
+    }
+
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--color-primary);
+    }
+
+    /* Fix native date/time input icon colors in dark theme */
+    [data-theme="dark"] .form-group input[type="date"],
+    [data-theme="dark"] .form-group input[type="time"] {
+      color-scheme: dark;
+    }
+
+    /* Mode Selector - Strict compact layout, no overflow */
+    .mode-selector {
+      display: flex;
+      flex-direction: row;
+      gap: 6px;
+      align-items: stretch;
+    }
+
+    .mode-card {
+      position: relative;
+      display: flex;
+      flex: 1;
+      align-items: center;
+      padding: 6px 8px;
+      border: 2px solid var(--color-border);
+      border-radius: var(--border-radius-md);
+      background: var(--color-surface);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      min-height: 32px;
+      overflow: hidden;
+    }
+
+    .mode-card:hover {
+      border-color: var(--color-primary);
+      background: var(--color-primary-light);
+    }
+
+    .mode-card input[type="radio"] {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .mode-card input[type="radio"]:checked + .mode-card-content .mode-card-icon {
+      color: var(--color-primary);
+    }
+
+    .mode-card input[type="radio"]:not(:checked) + .mode-card-content .mode-card-description {
+      display: none;
+    }
+
+    .mode-card:has(input:checked) {
+      border-color: var(--color-primary);
+      background: var(--color-primary-light);
+      box-shadow: 0 0 0 1px var(--color-primary);
+    }
+
+    .mode-card-content {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      min-width: 0;
+    }
+
+    .mode-card-header {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      width: 100%;
+      min-width: 0;
+      flex-wrap: nowrap;
+    }
+
+    .mode-card-header .mode-card-title {
+      flex: 1 0 auto;
+      min-width: 0;
+    }
+
+    .mode-card-icon {
+      flex: 0 0 14px;
+      width: 14px;
+      height: 14px;
+      color: var(--color-text-secondary);
+      transition: color 0.2s ease;
+    }
+
+    .mode-card-title {
+      font-size: 13px;
+      font-weight: var(--font-weight-semibold);
+      color: var(--color-text-primary);
+      line-height: 1.2;
+      white-space: nowrap;
+      flex: 1 0 auto;
+      min-width: 0;
+    }
+
+    .mode-card-badge {
+      flex: 0 1 max-content;
+      margin-left: 2px;
+      padding: 1px 2px;
+      background: var(--color-primary);
+      color: white;
+      font-size: 5px;
+      font-weight: var(--font-weight-semibold);
+      border-radius: 1px;
+      text-transform: uppercase;
+      letter-spacing: 0px;
+      line-height: 1.1;
+      white-space: nowrap;
+      min-width: fit-content;
+    }
+
+    .mode-card-description {
+      display: none;
+    }
+
+    /* Dark mode adjustments */
+    [data-theme="dark"] .mode-card:hover {
+      background: rgba(16, 185, 129, 0.12);
+    }
+
+    [data-theme="dark"] .mode-card:has(input:checked) {
+      background: rgba(16, 185, 129, 0.12);
+    }
+
+    .form-group input:disabled {
+      background: var(--color-gray-50);
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    .form-group input.invalid {
+      border-color: var(--color-error);
+    }
+
+    .form-group input.invalid:focus {
+      border-color: var(--color-error);
+    }
+
+    .form-error {
+      margin-top: 4px;
+      font-size: var(--font-size-xs);
+      color: var(--color-error);
+      line-height: var(--line-height-normal);
+    }
+
+    [data-theme="dark"] .form-error {
+      color: #fda4af;
+    }
+
+    .form-group select {
+      width: 100%;
+      padding: 6px var(--space-sm);
+      border: var(--border-width) solid var(--color-border);
+      border-radius: var(--border-radius-sm);
+      background: var(--color-surface);
+      font-size: var(--font-size-sm);
+      color: var(--color-text-primary);
+      font-family: inherit;
+      transition: border-color var(--transition-base);
+      cursor: pointer;
+    }
+
+    .form-group select:focus {
+      outline: none;
+      border-color: var(--color-primary);
+    }
+
+
+    /* ========================================
+       DATE RANGE SECTION
+       ======================================== */
+    
+    .date-range {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-sm);
+    }
+
+    /* ========================================
+       SETTINGS OVERLAY
+       ======================================== */
+    
+    .overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.4);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-md);
+    }
+
+    .overlay.active {
+      display: flex;
+    }
+
+    .overlay-content {
+      background: var(--color-surface);
+      border-radius: var(--border-radius-lg);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      width: 100%;
+      max-width: 300px;
+      max-height: 90vh;
+      overflow-y: auto;
+      position: relative;
+    }
+
+    .overlay-header {
+      padding: var(--space-md);
+      border-bottom: var(--border-width) solid var(--color-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      min-height: 48px;
+    }
+
+    .overlay-header h2 {
+      font-size: var(--font-size-md);
+      font-weight: var(--font-weight-semibold);
+      color: var(--color-text-primary);
+      line-height: 24px;
+      margin: 0;
+      padding: 0;
+      height: 24px;
+      display: flex;
+      align-items: center;
+    }
+
+    .overlay-close {
+      width: 24px;
+      height: 24px;
+      padding: 0;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--color-text-secondary);
+      border-radius: var(--border-radius-sm);
+      transition: all var(--transition-base);
+      flex-shrink: 0;
+      line-height: 24px;
+      margin: 0;
+    }
+
+    .overlay-close:hover {
+      background: var(--color-gray-100);
+      color: var(--color-text-primary);
+    }
+
+    [data-theme="dark"] .overlay-close:hover {
+      background: #2f2f2f;
+      color: var(--color-text-primary);
+    }
+
+    .overlay-close::before {
+      content: '×';
+      font-size: 20px;
+      line-height: 1;
+      display: block;
+      margin: 0;
+      padding: 0;
+    }
+
+    .overlay-body {
+      padding: var(--space-md);
+    }
+
+    .about-section {
+      margin-top: var(--space-lg);
+      padding-top: var(--space-lg);
+      border-top: var(--border-width) solid var(--color-border);
+    }
+
+    .about-section h3 {
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-semibold);
+      color: var(--color-text-primary);
+      margin-bottom: var(--space-md);
+    }
+
+    .about-item {
+      margin-bottom: var(--space-sm);
+      font-size: var(--font-size-sm);
+      display: flex;
+      align-items: baseline;
+    }
+
+    .about-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .about-label {
+      font-weight: var(--font-weight-medium);
+      color: var(--color-text-secondary);
+      flex-shrink: 0;
+      white-space: nowrap;
+      width: 80px;
+    }
+
+    .about-value {
+      color: var(--color-text-primary);
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+
+    .about-value a {
+      color: var(--color-accent);
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .about-value a:hover {
+      text-decoration: underline;
+    }
+
+    .about-value a {
+      color: var(--color-accent);
+      text-decoration: none;
+    }
+
+    .about-value a:hover {
+      text-decoration: underline;
+    }
+
+    .donation-section {
+      margin-top: var(--space-lg);
+      padding-top: var(--space-lg);
+      border-top: var(--border-width) solid var(--color-border);
+    }
+
+    .donation-text {
+      font-size: var(--font-size-sm);
+      color: var(--color-text-secondary);
+      line-height: var(--line-height-normal);
+      margin-bottom: var(--space-md);
+      text-align: left;
+    }
+
+    .btn-donation {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 8px var(--space-md);
+      border: var(--border-width) solid #d97706;
+      border-radius: var(--border-radius-sm);
+      background: #f97316;
+      color: #ffffff;
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-medium);
+      text-decoration: none;
+      cursor: pointer;
+      transition: all var(--transition-base);
+      font-family: inherit;
+      width: 100%;
+    }
+
+    .btn-donation:hover {
+      background: #ea580c;
+      border-color: #c2410c;
+      color: #ffffff;
+    }
+
+    .btn-donation:active {
+      transform: scale(0.98);
+    }
+
+    .btn-donation svg {
+      width: 16px;
+      height: 16px;
+      fill: currentColor;
+      flex-shrink: 0;
+    }
+
+    [data-theme="dark"] .btn-donation {
+      background: #ea580c;
+      border-color: #c2410c;
+    }
+
+    [data-theme="dark"] .btn-donation:hover {
+      background: #dc2626;
+      border-color: #b91c1c;
+    }
+
+    /* ========================================
+       BUTTONS
+       ======================================== */
+    
+    .button-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    button {
+      padding: 8px var(--space-md);
+      border: none;
+      border-radius: var(--border-radius-sm);
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-medium);
+      cursor: pointer;
+      transition: all var(--transition-base);
+      font-family: inherit;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    button svg {
+      width: 16px;
+      height: 16px;
+      fill: currentColor;
+      flex-shrink: 0;
+    }
+
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    button:not(:disabled):active {
+      transform: scale(0.98);
+    }
+
+    .btn-primary {
+      background: var(--color-primary);
+      color: #ffffff;
+      font-weight: var(--font-weight-semibold);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: var(--color-primary-hover);
+    }
+
+    .btn-secondary {
+      background: var(--color-secondary);
+      color: #ffffff;
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background: var(--color-secondary-hover);
+    }
+
+    .btn-accent {
+      background: var(--color-accent);
+      color: #ffffff;
+    }
+
+    .btn-accent:hover:not(:disabled) {
+      background: var(--color-accent-hover);
+    }
+
+    .btn-outline {
+      background: var(--color-surface);
+      color: var(--color-text-primary);
+      border: var(--border-width) solid var(--color-border);
+    }
+
+    .btn-outline:hover:not(:disabled) {
+      background: var(--color-gray-50);
+      border-color: var(--color-gray-300);
+    }
+
+    [data-theme="dark"] .btn-outline:hover:not(:disabled) {
+      background: #2f2f2f;
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    /* ========================================
+       PROGRESS INDICATOR
+       ======================================== */
+    
+    .progress {
+      margin-top: 12px;
+      padding: var(--space-sm) var(--space-md);
+      border-radius: var(--border-radius-sm);
+      font-size: var(--font-size-xs);
+      text-align: center;
+      min-height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: var(--border-width) solid var(--color-border);
+      background: var(--color-gray-50);
+      color: var(--color-text-secondary);
+    }
+
+    [data-theme="dark"] .progress {
+      background: #2a2a2a;
+      color: var(--color-text-secondary);
+      border-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .progress.success {
+      background: var(--color-success-light);
+      border-color: var(--color-success);
+      color: var(--color-success);
+      font-weight: var(--font-weight-medium);
+    }
+
+    [data-theme="dark"] .progress.success {
+      background: rgba(16, 185, 129, 0.22);
+      border-color: #10b981;
+      color: #6ee7b7;
+    }
+
+    .progress.error {
+      background: var(--color-error-light);
+      border-color: var(--color-error);
+      color: var(--color-error);
+      font-weight: var(--font-weight-medium);
+    }
+
+    [data-theme="dark"] .progress.error {
+      background: rgba(244, 63, 94, 0.22);
+      border-color: #f43f5e;
+      color: #fda4af;
+    }
+
+    .progress.loading {
+      background: var(--color-accent-light);
+      border-color: var(--color-accent);
+      color: var(--color-accent);
+    }
+
+    [data-theme="dark"] .progress.loading {
+      background: rgba(14, 165, 233, 0.22);
+      border-color: #0ea5e9;
+      color: #7dd3fc;
+    }
+
+    /* ========================================
+       UTILITIES
+       ======================================== */
+    
+    .hidden {
+      display: none;
+    }
+
+    .text-center {
+      text-align: center;
+    }
+
+    .mt-sm {
+      margin-top: var(--space-sm);
+    }
+
+    .mt-md {
+      margin-top: var(--space-md);
+    }
+
+    /* ========================================
+       HELP OVERLAY CONTENT
+       ======================================== */
+    
+    .help-content {
+      font-size: var(--font-size-sm);
+      line-height: var(--line-height-normal);
+    }
+
+    .help-section {
+      margin-bottom: var(--space-lg);
+    }
+
+    .help-section:last-child {
+      margin-bottom: 0;
+    }
+
+    .help-section h3 {
+      font-size: var(--font-size-sm);
+      font-weight: var(--font-weight-semibold);
+      color: var(--color-text-primary);
+      margin-bottom: var(--space-sm);
+    }
+
+    .help-list {
+      margin-left: var(--space-md);
+      margin-bottom: 0;
+      padding-left: var(--space-sm);
+    }
+
+    .help-list li {
+      margin-bottom: var(--space-xs);
+      color: var(--color-text-secondary);
+    }
+
+    .help-list li:last-child {
+      margin-bottom: 0;
+    }
+
+    .help-list li strong {
+      color: var(--color-text-primary);
+      font-weight: var(--font-weight-semibold);
+    }
+
+    .help-section p {
+      color: var(--color-text-secondary);
+      font-size: var(--font-size-sm);
+      line-height: var(--line-height-normal);
+      margin-bottom: var(--space-sm);
+    }
+
+    .help-section a {
+      color: var(--color-accent);
+      text-decoration: none;
+    }
+
+    .help-section a:hover {
+      text-decoration: underline;
+    }
+
+    /* ========================================
+       FOOTER
+       ======================================== */
+    
+    .footer {
+      padding: var(--space-sm) var(--space-md);
+      border-top: var(--border-width) solid var(--color-border);
+      background: var(--color-background);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: var(--space-xs);
+      font-size: var(--font-size-xs);
+      color: var(--color-text-secondary);
+      flex-shrink: 0;
+    }
+
+    .footer-link {
+      color: var(--color-accent);
+      text-decoration: none;
+      cursor: pointer;
+      transition: color var(--transition-base);
+    }
+
+    .footer-link:hover {
+      color: var(--color-accent-hover);
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div class="header">
+    <div class="header-content">
+      <img src="icons/icon.png" alt="FPTU Study Calendar" class="header-icon" />
+      <div>
+        <h1 id="extensionName">FPTU Study Calendar</h1>
+        <div class="header-subtitle" id="headerSubtitle"></div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn-icon" id="settingsButton" title="Settings">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-three-dots-vertical" viewBox="0 0 16 16">
+          <path d="M9.5 13a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0m0-5a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="content">
+    <!-- Mode Selector -->
+    <div class="section">
+      <div class="form-group">
+        <label data-i18n="scrapeModeLabel" style="font-size: var(--font-size-sm); font-weight: var(--font-weight-medium); color: var(--color-text-secondary); margin-bottom: 6px; display: block;">Chế độ trích xuất</label>
+        <div class="mode-selector">
+          <label class="mode-card" for="fastModeRadio">
+            <input type="radio" name="scrapeMode" value="fast" id="fastModeRadio" checked>
+            <div class="mode-card-content">
+              <div class="mode-card-header">
+                <svg class="mode-card-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                  <path d="M5.52.359A.5.5 0 0 1 6 0h4a.5.5 0 0 1 .474.658L8.694 6H12.5a.5.5 0 0 1 .395.807l-7 9a.5.5 0 0 1-.873-.454L6.823 9.5H3.5a.5.5 0 0 1-.48-.641zM6.374 1 4.168 8.5H7.5a.5.5 0 0 1 .478.647L6.78 13.04 11.478 7H8a.5.5 0 0 1-.474-.658L9.306 1z"/>
+                </svg>
+                <span class="mode-card-title" data-i18n="fastModeLabel">Nhanh</span>
+              </div>
+              <p class="mode-card-description" data-i18n="fastModeDesc">Theo kỳ học • Nhanh chóng</p>
+            </div>
+          </label>
+          
+          <label class="mode-card" for="detailedModeRadio">
+            <input type="radio" name="scrapeMode" value="detailed" id="detailedModeRadio">
+            <div class="mode-card-content">
+              <div class="mode-card-header">
+                <svg class="mode-card-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                  <path d="M14.5 3a.5.5 0 0 1 .5.5v9a.5.5 0 0 1-.5.5h-13a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5zm-13-1A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h13a1.5 1.5 0 0 0 1.5-1.5v-9A1.5 1.5 0 0 0 14.5 2z"/>
+                  <path d="M5 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 5 8m0-2.5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m0 5a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7a.5.5 0 0 1-.5-.5m-1-5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0M4 8a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0m0 2.5a.5.5 0 1 1-1 0 .5.5 0 0 1 1 0"/>
+                </svg>
+                <span class="mode-card-title" data-i18n="detailedModeLabel">Chi tiết</span>
+              </div>
+              <p class="mode-card-description" data-i18n="detailedModeDesc">Theo tuần • Đầy đủ thông tin</p>
+            </div>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fast Mode: Semester Selector -->
+    <div id="fastModeContainer" class="section" style="display: none;">
+      <div class="form-group">
+        <label for="semesterSelect" data-i18n="semesterLabel">Chọn kỳ học</label>
+        <div style="display: flex; gap: var(--space-sm);">
+          <select id="semesterSelect" disabled style="flex: 1;">
+            <option data-i18n="loadingSemesters">Đang tải...</option>
+          </select>
+          <button id="refreshCacheBtn" class="btn-icon" disabled style="flex-shrink: 0;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+              <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z"/>
+              <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Detailed Mode: Date Range Section -->
+    <div id="detailedModeContainer" class="section" style="display: none;">
+      <div class="section-header" id="sectionDateRange"></div>
+      <div class="date-range">
+        <div class="form-group">
+          <label for="startDate" id="startDateLabel"></label>
+          <input type="date" id="startDate" />
+        </div>
+        <div class="form-group">
+          <label for="endDate" id="endDateLabel"></label>
+          <input type="date" id="endDate" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Primary Actions -->
+    <div class="section">
+      <div class="button-group">
+        <button id="scrapeButton" class="btn-primary">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M3 2.5A1.5 1.5 0 0 1 4.5 1h1A1.5 1.5 0 0 1 7 2.5V5h2V2.5A1.5 1.5 0 0 1 10.5 1h1A1.5 1.5 0 0 1 13 2.5v2.382a.5.5 0 0 0 .276.447l.895.447A1.5 1.5 0 0 1 15 7.118V14.5a1.5 1.5 0 0 1-1.5 1.5h-3A1.5 1.5 0 0 1 9 14.5v-3a.5.5 0 0 1 .146-.354l.854-.853V9.5a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5v.793l.854.853A.5.5 0 0 1 7 11.5v3A1.5 1.5 0 0 1 5.5 16h-3A1.5 1.5 0 0 1 1 14.5V7.118a1.5 1.5 0 0 1 .83-1.342l.894-.447A.5.5 0 0 0 3 4.882zM4.5 2a.5.5 0 0 0-.5.5V3h2v-.5a.5.5 0 0 0-.5-.5zM6 4H4v.882a1.5 1.5 0 0 1-.83 1.342l-.894.447A.5.5 0 0 0 2 7.118V13h4v-1.293l-.854-.853A.5.5 0 0 1 5 10.5v-1A1.5 1.5 0 0 1 6.5 8h3A1.5 1.5 0 0 1 11 9.5v1a.5.5 0 0 1-.146.354l-.854.853V13h4V7.118a.5.5 0 0 0-.276-.447l-.895-.447A1.5 1.5 0 0 1 12 4.882V4h-2v1.5a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5zm4-1h2v-.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5zm4 11h-4v.5a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5zm-8 0H2v.5a.5.5 0 0 0 .5.5h3a.5.5 0 0 0 .5-.5z"/>
+          </svg>
+          <span id="scrapeButtonText"></span>
+        </button>
+        <button id="previewButton" class="btn-secondary" disabled>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M11 6.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5zm-3 0a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5zm-5 3a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5zm3 0a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-1a.5.5 0 0 1-.5-.5z"/>
+            <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"/>
+          </svg>
+          <span id="previewButtonText"></span>
+        </button>
+        <button id="exportButton" class="btn-accent" disabled>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/>
+            <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"/>
+          </svg>
+          <span id="exportButtonText"></span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Progress Indicator -->
+    <div class="progress" id="progress"></div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <span id="footerMadeBy"></span>
+    <a href="#" id="footerHelpLink" class="footer-link"></a>
+  </div>
+
+  <!-- Help Overlay -->
+  <div class="overlay" id="helpOverlay">
+    <div class="overlay-content">
+      <div class="overlay-header">
+        <h2 id="helpTitle"></h2>
+        <button class="overlay-close" id="helpOverlayClose"></button>
+      </div>
+      <div class="overlay-body">
+        <div class="help-content">
+          <p id="helpTipsNotice" style="margin-bottom: 20px; padding: 12px; background-color: rgba(16, 185, 129, 0.1); border-left: 3px solid #10b981; border-radius: 4px; font-size: 14px; color: var(--color-text-secondary);"></p>
+          <div class="help-section">
+            <h3 id="helpSectionGettingStarted"></h3>
+            <ol class="help-list">
+              <li id="helpStep1"></li>
+              <li id="helpStep2"></li>
+              <li id="helpStep3"></li>
+              <li id="helpStep4"></li>
+            </ol>
+          </div>
+          
+          <div class="help-section">
+            <h3 id="helpSectionFeatures"></h3>
+            <ul class="help-list">
+              <li id="helpFeature1"></li>
+              <li id="helpFeature2"></li>
+              <li id="helpFeature3"></li>
+            </ul>
+          </div>
+          
+          <div class="help-section">
+            <h3 id="helpSectionModes"></h3>
+            <div style="margin-bottom: 16px;">
+              <p id="helpModeFastTitle" style="margin-bottom: 6px;"></p>
+              <p id="helpModeFastDescription" style="margin: 0 0 6px 0; font-size: 14px; color: var(--color-text-secondary);"></p>
+              <p id="helpModeFastUses" style="margin: 0; font-size: 13px; color: var(--color-text-muted); font-style: italic;"></p>
+            </div>
+            <div>
+              <p id="helpModeDetailedTitle" style="margin-bottom: 6px;"></p>
+              <p id="helpModeDetailedDescription" style="margin: 0 0 6px 0; font-size: 14px; color: var(--color-text-secondary);"></p>
+              <p id="helpModeDetailedUses" style="margin: 0; font-size: 13px; color: var(--color-text-muted); font-style: italic;"></p>
+            </div>
+          </div>
+          
+          <div class="help-section">
+            <h3 id="helpSectionTips"></h3>
+            <ul class="help-list">
+              <li id="helpTip5"></li>
+              <li id="helpTip1"></li>
+              <li id="helpTip2"></li>
+              <li id="helpTip3"></li>
+              <li id="helpTip4"></li>
+            </ul>
+          </div>
+          
+          <div class="help-section">
+            <h3 id="helpSectionTroubleshooting"></h3>
+            <ul class="help-list">
+              <li id="helpTrouble1"></li>
+              <li id="helpTrouble2"></li>
+              <li id="helpTrouble3"></li>
+              <li id="helpTrouble4"></li>
+            </ul>
+          </div>
+          
+          <div class="help-section">
+            <h3 id="helpSectionSupport"></h3>
+            <p id="helpSupportMessage"></p>
+            <ul class="help-list">
+              <li>
+                <strong id="helpSupportGitHub"></strong>: 
+                <a href="https://github.com/etsuyuu/fptu-study-calendar/issues" target="_blank">github.com/etsuyuu/fptu-study-calendar/issues</a>
+              </li>
+              <li>
+                <strong id="helpSupportEmail"></strong>: 
+                <a href="mailto:buidungnd.2005@gmail.com">buidungnd.2005@gmail.com</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Overlay -->
+  <div class="overlay" id="settingsOverlay">
+    <div class="overlay-content">
+      <div class="overlay-header">
+        <h2 id="advancedSettingsText">Advanced Settings</h2>
+        <button class="overlay-close" id="overlayClose"></button>
+      </div>
+      <div class="overlay-body">
+        <div class="form-group">
+          <label for="themeSelect" id="themeLabel">Giao diện</label>
+          <select id="themeSelect">
+            <option value="system" id="themeSystemOption">Hệ thống</option>
+            <option value="light" id="themeLightOption">Sáng</option>
+            <option value="dark" id="themeDarkOption">Tối</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="waitTime" id="waitTimeLabel">Wait Time (ms)</label>
+          <input type="number" id="waitTime" min="1000" max="10000" step="1000" />
+          <div class="form-error" id="waitTimeError" style="display: none;"></div>
+        </div>
+
+        <div class="about-section">
+          <h3 id="aboutTitle"></h3>
+          <div class="about-item">
+            <span class="about-label" id="aboutVersionLabel"></span>
+            <span class="about-value" id="aboutVersion">1.2.0</span>
+          </div>
+          <div class="about-item">
+            <span class="about-label" id="aboutAuthorLabel"></span>
+            <span class="about-value" id="aboutAuthor">BV. Dũng (晴天)</span>
+          </div>
+          <div class="about-item">
+            <span class="about-label" id="aboutGitHubLabel"></span>
+            <span class="about-value">
+              <a href="https://github.com/etsuyuu/fptu-study-calendar" target="_blank" id="aboutGitHubLink">fptu-study-calendar</a>
+            </span>
+          </div>
+          <div class="about-item">
+            <span class="about-label" id="aboutHelpLabel"></span>
+            <span class="about-value">
+              <a href="mailto:buidungnd.2005@gmail.com" id="aboutHelpEmail">buidungnd.2005@gmail.com</a>
+            </span>
+          </div>
+        </div>
+        
+        <div class="donation-section">
+          <p class="donation-text" data-i18n="donationAppreciated"></p>
+          <a href="https://buymeacoffee.com/qingtian1927" target="_blank" class="btn-donation" id="donationButton">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-cup-hot-fill" viewBox="0 0 16 16">
+              <path fill-rule="evenodd" d="M.5 6a.5.5 0 0 0-.488.608l1.652 7.434A2.5 2.5 0 0 0 4.104 16h5.792a2.5 2.5 0 0 0 2.44-1.958l.131-.59a3 3 0 0 0 1.3-5.854l.221-.99A.5.5 0 0 0 13.5 6zM13 12.5a2 2 0 0 1-.316-.025l.867-3.898A2.001 2.001 0 0 1 13 12.5"/>
+              <path d="m4.4.8-.003.004-.014.019a4 4 0 0 0-.204.31 2 2 0 0 0-.141.267c-.026.06-.034.092-.037.103v.004a.6.6 0 0 0 .091.248c.075.133.178.272.308.445l.01.012c.118.158.26.347.37.543.112.2.22.455.22.745 0 .188-.065.368-.119.494a3 3 0 0 1-.202.388 5 5 0 0 1-.253.382l-.018.025-.005.008-.002.002A.5.5 0 0 1 3.6 4.2l.003-.004.014-.019a4 4 0 0 0 .204-.31 2 2 0 0 0 .141-.267c.026-.06.034-.092.037-.103a.6.6 0 0 0-.09-.252A4 4 0 0 0 3.6 2.8l-.01-.012a5 5 0 0 1-.37-.543A1.53 1.53 0 0 1 3 1.5c0-.188.065-.368.119-.494.059-.138.134-.274.202-.388a6 6 0 0 1 .253-.382l.025-.035A.5.5 0 0 1 4.4.8m3 0-.003.004-.014.019a4 4 0 0 0-.204.31 2 2 0 0 0-.141.267c-.026.06-.034.092-.037.103v.004a.6.6 0 0 0 .091.248c.075.133.178.272.308.445l.01.012c.118.158.26.347.37.543.112.2.22.455.22.745 0 .188-.065.368-.119.494a3 3 0 0 1-.202.388 5 5 0 0 1-.253.382l-.018.025-.005.008-.002.002A.5.5 0 0 1 6.6 4.2l.003-.004.014-.019a4 4 0 0 0 .204-.31 2 2 0 0 0 .141-.267c.026-.06.034-.092.037-.103a.6.6 0 0 0-.09-.252A4 4 0 0 0 6.6 2.8l-.01-.012a5 5 0 0 1-.37-.543A1.53 1.53 0 0 1 6 1.5c0-.188.065-.368.119-.494.059-.138.134-.274.202-.388a6 6 0 0 1 .253-.382l.025-.035A.5.5 0 0 1 7.4.8m3 0-.003.004-.014.019a4 4 0 0 0-.204.31 2 2 0 0 0-.141.267c-.026.06-.034.092-.037.103v.004a.6.6 0 0 0 .091.248c.075.133.178.272.308.445l.01.012c.118.158.26.347.37.543.112.2.22.455.22.745 0 .188-.065.368-.119.494a3 3 0 0 1-.202.388 5 5 0 0 1-.252.382l-.019.025-.005.008-.002.002A.5.5 0 0 1 9.6 4.2l.003-.004.014-.019a4 4 0 0 0 .204-.31 2 2 0 0 0 .141-.267c.026-.06.034-.092.037-.103a.6.6 0 0 0-.09-.252A4 4 0 0 0 9.6 2.8l-.01-.012a5 5 0 0 1-.37-.543A1.53 1.53 0 0 1 9 1.5c0-.188.065-.368.119-.494.059-.138.134-.274.202-.388a6 6 0 0 1 .253-.382l.025-.035A.5.5 0 0 1 10.4.8"/>
+            </svg>
+            <span>Buy me a coffee</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Merge/Replace Dialog Overlay -->
+  <div class="overlay" id="mergeReplaceOverlay">
+    <div class="overlay-content">
+      <div class="overlay-header">
+        <h2 data-i18n="mergeReplaceTitle">Xử lý dữ liệu hiện có</h2>
+        <button class="overlay-close" id="mergeReplaceOverlayClose"></button>
+      </div>
+      <div class="overlay-body">
+        <p data-i18n="mergeReplaceMessage" style="margin-bottom: var(--space-md); color: var(--color-text-secondary); font-size: var(--font-size-sm); line-height: var(--line-height-normal);">
+          Bạn đã có dữ liệu lịch học. Bạn muốn:
+        </p>
+        
+        <!-- Mode difference warning (hidden by default) -->
+        <div id="modeDifferenceWarning" style="display: none; background: rgba(245, 158, 11, 0.1); border: 1px solid #f59e0b; border-radius: var(--border-radius-sm); padding: var(--space-md); margin-bottom: var(--space-lg);">
+          <div style="display: flex; align-items: flex-start; gap: var(--space-sm);">
+            <span style="font-size: 18px; line-height: 1;">⚠️</span>
+            <p data-i18n="modeDifferenceWarning" style="color: var(--color-text-primary); font-size: var(--font-size-sm); margin: 0;">
+              Chế độ trích xuất khác với dữ liệu cũ. Dữ liệu mới sẽ được ưu tiên, một số thông tin có thể bị mất.
+            </p>
+          </div>
+        </div>
+        
+        <div class="button-group">
+          <button id="mergeButton" class="btn-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+              <path d="M0 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2h2a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2H2a2 2 0 0 1-2-2z"/>
+            </svg>
+            <span data-i18n="mergeOption">Gộp dữ liệu</span>
+          </button>
+          <button id="replaceButton" class="btn-secondary">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+              <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0M5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293z"/>
+            </svg>
+            <span data-i18n="replaceOption">Thay thế hoàn toàn</span>
+          </button>
+          <button id="cancelMergeReplaceButton" class="btn-outline">
+            <span data-i18n="cancelOption">Hủy</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fast Mode Error Overlay -->
+  <div class="overlay" id="fastModeErrorOverlay">
+    <div class="overlay-content">
+      <div class="overlay-header">
+        <h2 data-i18n="fastModeErrorTitle">Lỗi chế độ nhanh</h2>
+        <button class="overlay-close" id="fastModeErrorClose"></button>
+      </div>
+      <div class="overlay-body">
+        <div style="text-align: center; margin-bottom: var(--space-lg);">
+          <div style="font-size: 48px; margin-bottom: var(--space-md);">⚠️</div>
+          <p id="fastModeErrorMessage" style="font-size: var(--font-size-md); color: var(--color-text-primary); margin-bottom: var(--space-md);"></p>
+          <p data-i18n="fastModeErrorSuggestion" style="font-size: var(--font-size-sm); color: var(--color-text-secondary);">
+            Bạn có thể thử lại bằng chế độ chi tiết để có kết quả tốt hơn.
+          </p>
+        </div>
+        <div class="button-group">
+          <button id="retryDetailedModeBtn" class="btn-primary">
+            <span data-i18n="retryDetailedMode">Thử lại với chế độ chi tiết</span>
+          </button>
+          <button id="dismissErrorBtn" class="btn-outline">
+            <span data-i18n="dismissError">Đóng</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="ics-export.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
