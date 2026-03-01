@@ -11,15 +11,22 @@ function getIcsMessage(key) {
   if (typeof chrome !== 'undefined' && chrome.i18n) {
     return chrome.i18n.getMessage(key) || key;
   }
-  // Fallback to English for testing outside extension context
+  // Fallback to Vietnamese for testing outside extension context
   const fallbacks = {
-    'icsLocationLabel': 'Location',
-    'icsRelocatedWarning': '⚠️ This class has been relocated',
-    'icsSummaryRelocated': 'Relocated',
+    'icsLocationLabel': 'Lớp học',
+    'icsRelocatedWarning': '⚠️ Lớp học này đã được đổi slot',
+    'icsSummaryRelocated': 'Đổi slot',
     'icsMeetLabel': 'Google Meet',
-    'icsHasEduNext': '* Has discussion on EduNext',
-    'icsHasMaterials': '* Has materials on FLM',
-    'icsViewLinksNote': '(Please check schedule on FAP to see the links)'
+    'icsHasEduNext': '* Có thảo luận trên EduNext',
+    'icsHasMaterials': '* Có tài liệu trên FLM',
+    'icsViewLinksNote': '(Vui lòng xem lịch trên FAP để xem rõ link)',
+    'icsExamPrefix': '[EXAM]',
+    'icsExamRoom': 'Phòng thi',
+    'icsExamForm': 'Hình thức',
+    'icsExamType': 'Loại thi',
+    'icsReminderLabel': 'Nhắc nhở',
+    'icsExamReminder1Day': 'Nhắc nhở (1 ngày trước)',
+    'icsExamReminder1Hour': 'Nhắc nhở (1 giờ trước)'
   };
   return fallbacks[key] || key;
 }
@@ -394,7 +401,7 @@ function generateIcsEvent(classData, index = 0, isFirstClassOfDay = false) {
   lines.push('BEGIN:VALARM');
   lines.push(`TRIGGER:-PT${reminderMinutes}M`);
   lines.push('ACTION:DISPLAY');
-  lines.push(`DESCRIPTION:Reminder: ${escapeIcsText(summary)}`);
+  lines.push(`DESCRIPTION:${getIcsMessage('icsReminderLabel')}: ${escapeIcsText(summary)}`);
   lines.push('END:VALARM');
   
   lines.push('END:VEVENT');
@@ -404,12 +411,122 @@ function generateIcsEvent(classData, index = 0, isFirstClassOfDay = false) {
 }
 
 /**
+ * Generate ICS content for a single exam event
+ * @param {Object} examData - Exam data object
+ * @param {number} index - Index for sequence number
+ * @returns {Array<string>} Array of ICS event lines
+ */
+function generateIcsExamEvent(examData, index = 0) {
+  const {
+    subjectCode,
+    subjectName,
+    date,
+    time,
+    room,
+    examForm,
+    examType
+  } = examData;
+
+  if (!date || !time || !time.start || !time.end) {
+    console.warn('Invalid exam data for ICS export:', examData);
+    return [];
+  }
+
+  const dtStart = formatIcsDateTime(date, time.start);
+  const dtEnd = formatIcsDateTime(date, time.end);
+
+  if (!dtStart || !dtEnd) {
+    console.warn('Failed to format date-time for exam:', examData);
+    return [];
+  }
+
+  const now = new Date();
+  const dtStamp = formatIcsDateTimeUtc(
+    now.toISOString().split('T')[0],
+    String(now.getUTCHours()).padStart(2, '0') + ':' +
+    String(now.getUTCMinutes()).padStart(2, '0') + ':' +
+    String(now.getUTCSeconds()).padStart(2, '0')
+  );
+
+  // Generate UID for exam event
+  const uniqueStr = `exam-${subjectCode}-${date}-${time.start}-${examType || ''}`;
+  let hash = 0;
+  for (let i = 0; i < uniqueStr.length; i++) {
+    const char = uniqueStr.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  const year = new Date().getFullYear();
+  const uid = `${year}-exam-${Math.abs(hash)}@fptu-study-calendar`;
+
+  // Build summary: [THI] SubjectCode (ExamType)
+  const examTypeLabel = examType ? ` (${examType})` : '';
+  const summary = `${getIcsMessage('icsExamPrefix')} ${subjectCode || 'Exam'}${examTypeLabel}`;
+
+  // Build description
+  const descParts = [];
+  if (subjectName && subjectName.trim()) {
+    descParts.push(subjectName.trim());
+  }
+  if (room && room.trim()) {
+    descParts.push(`${getIcsMessage('icsExamRoom')}: ${room.trim()}`);
+  }
+  if (examForm && examForm.trim()) {
+    descParts.push(`${getIcsMessage('icsExamForm')}: ${examForm.trim()}`);
+  }
+  if (examType && examType.trim()) {
+    descParts.push(`${getIcsMessage('icsExamType')}: ${examType.trim()}`);
+  }
+  const description = descParts.join('\n');
+
+  const lines = [
+    'BEGIN:VEVENT',
+    `UID:${uid}`,
+    `DTSTAMP:${dtStamp}`,
+    `DTSTART:${dtStart}`,
+    `DTEND:${dtEnd}`,
+    `SUMMARY:${escapeIcsText(summary)}`,
+    'CATEGORIES:EXAM',
+  ];
+
+  if (description) {
+    lines.push(`DESCRIPTION:${escapeIcsText(description)}`);
+  }
+
+  if (room && room.trim()) {
+    lines.push(`LOCATION:${escapeIcsText(room.trim())}`);
+  }
+
+  lines.push('SEQUENCE:0');
+  lines.push('STATUS:CONFIRMED');
+  lines.push('TRANSP:OPAQUE');
+
+  // Two reminders for exams: 1 day before and 1 hour before
+  lines.push('BEGIN:VALARM');
+  lines.push('TRIGGER:-P1D');
+  lines.push('ACTION:DISPLAY');
+  lines.push(`DESCRIPTION:${getIcsMessage('icsExamReminder1Day')}: ${escapeIcsText(summary)}`);
+  lines.push('END:VALARM');
+
+  lines.push('BEGIN:VALARM');
+  lines.push('TRIGGER:-PT1H');
+  lines.push('ACTION:DISPLAY');
+  lines.push(`DESCRIPTION:${getIcsMessage('icsExamReminder1Hour')}: ${escapeIcsText(summary)}`);
+  lines.push('END:VALARM');
+
+  lines.push('END:VEVENT');
+  return lines;
+}
+
+/**
  * Generate complete ICS file content from classes array
  * @param {Array} classes - Array of class data objects
+ * @param {Array} [exams=[]] - Array of exam data objects
  * @returns {string} Complete ICS file content
  */
-function generateIcsFile(classes) {
-  if (!Array.isArray(classes) || classes.length === 0) {
+function generateIcsFile(classes, exams) {
+  exams = exams || [];
+  if ((!Array.isArray(classes) || classes.length === 0) && exams.length === 0) {
     throw new Error('No classes to export');
   }
   
@@ -477,6 +594,24 @@ function generateIcsFile(classes) {
   
   lines.push('END:VCALENDAR');
   
+  // Add exam events after regular class events
+  // Re-insert exams before END:VCALENDAR
+  // (They were already included inline above - remove the manual END:VCALENDAR approach)
+  // Actually, add exam events now (before we pushed END:VCALENDAR)
+  // Let's fix this: we need to insert exam events before END:VCALENDAR
+  // Remove the END:VCALENDAR we just pushed
+  lines.pop();
+  
+  // Add exam events
+  exams.forEach((examData, index) => {
+    const eventLines = generateIcsExamEvent(examData, index);
+    if (eventLines && eventLines.length > 0) {
+      lines.push(...eventLines);
+    }
+  });
+
+  lines.push('END:VCALENDAR');
+  
   // Fold all lines according to RFC 5545
   const foldedLines = lines.map(line => foldIcsLine(line));
   
@@ -512,22 +647,25 @@ function downloadIcsFile(icsContent, filename = 'fptu-calendar.ics') {
 }
 
 /**
- * Export classes to ICS file
+ * Export classes and exams to ICS file
  * @param {Array} classes - Array of class data objects
+ * @param {Array} [exams=[]] - Array of exam data objects
  * @param {string} filename - Optional filename
  */
-function exportToIcs(classes, filename) {
+function exportToIcs(classes, exams, filename) {
+  exams = exams || [];
   try {
-    if (!Array.isArray(classes) || classes.length === 0) {
+    if ((!Array.isArray(classes) || classes.length === 0) && exams.length === 0) {
       throw new Error('No classes to export');
     }
     
     // Generate ICS content
-    const icsContent = generateIcsFile(classes);
+    const icsContent = generateIcsFile(classes, exams);
     
     // Generate filename with date range if not provided
     if (!filename) {
-      const dates = classes.map(c => c.date).sort();
+      const allItems = [...(classes || []), ...exams];
+      const dates = allItems.map(c => c.date).sort();
       const startDate = dates[0] || new Date().toISOString().split('T')[0];
       const endDate = dates[dates.length - 1] || startDate;
       filename = `fptu-calendar-${startDate}-to-${endDate}.ics`;

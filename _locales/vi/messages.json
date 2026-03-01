@@ -52,8 +52,8 @@
     "description": "Tiêu đề cài đặt nâng cao"
   },
   "scrapeButton": {
-    "message": "Bắt đầu trích xuất",
-    "description": "Nút bắt đầu trích xuất"
+    "message": "Trích xuất lớp học",
+    "description": "Nút trích xuất lớp học"
   },
   "previewButton": {
     "message": "Xem lịch học",
@@ -784,6 +784,76 @@
   "emptyStateExtractFirst": {
     "message": "Vui lòng trích xuất lịch học trước.",
     "description": "Thông báo yêu cầu trích xuất lịch học"
+  },
+  "examScrapeButton": {
+    "message": "Trích xuất lịch thi",
+    "description": "Nút bắt đầu trích xuất lịch thi"
+  },
+  "examOverlayTitle": {
+    "message": "Đang trích xuất lịch thi",
+    "description": "Tiêu đề overlay trích xuất lịch thi"
+  },
+  "examOverlayMessage": {
+    "message": "Đang trích xuất lịch thi cho bạn...",
+    "description": "Thông điệp overlay trích xuất lịch thi"
+  },
+  "examProgressInitializing": {
+    "message": "Đang khởi tạo trích xuất lịch thi...",
+    "description": "Trạng thái đang khởi tạo trích xuất lịch thi"
+  },
+  "examProgressSuccess": {
+    "message": "Trích xuất lịch thi thành công! Đã tìm thấy $COUNT$ kỳ thi.",
+    "description": "Thông báo trích xuất lịch thi thành công",
+    "placeholders": {
+      "COUNT": {
+        "content": "$1",
+        "example": "5"
+      }
+    }
+  },
+  "examNoDataFound": {
+    "message": "Không tìm thấy lịch thi",
+    "description": "Thông báo không có lịch thi"
+  },
+  "examTableNotFound": {
+    "message": "Không tìm thấy bảng lịch thi trên trang",
+    "description": "Lỗi khi không thấy bảng lịch thi"
+  },
+  "examBadge": {
+    "message": "Thi",
+    "description": "Nhãn hiển thị trên khối sự kiện thi"
+  },
+  "examIcsCategory": {
+    "message": "EXAM",
+    "description": "Danh mục ICS cho kỳ thi"
+  },
+  "icsExamPrefix": {
+    "message": "[EXAM]",
+    "description": "Tiền tố cho sự kiện thi trong ICS"
+  },
+  "icsExamRoom": {
+    "message": "Phòng thi",
+    "description": "Nhãn phòng thi trong mô tả ICS"
+  },
+  "icsExamForm": {
+    "message": "Hình thức",
+    "description": "Nhãn hình thức thi trong mô tả ICS"
+  },
+  "icsExamType": {
+    "message": "Loại thi",
+    "description": "Nhãn loại thi trong mô tả ICS"
+  },
+  "icsReminderLabel": {
+    "message": "Nhắc nhở",
+    "description": "Nhãn nhắc nhở trong alarm ICS"
+  },
+  "icsExamReminder1Day": {
+    "message": "Nhắc nhở (1 ngày trước)",
+    "description": "Nhãn nhắc nhở 1 ngày trước kỳ thi"
+  },
+  "icsExamReminder1Hour": {
+    "message": "Nhắc nhở (1 giờ trước)",
+    "description": "Nhãn nhắc nhở 1 giờ trước kỳ thi"
   }
 }
 

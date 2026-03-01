@@ -213,6 +213,7 @@ async function initPopup() {
   document.getElementById('themeLightOption').textContent = getMessage('themeLight');
   document.getElementById('themeDarkOption').textContent = getMessage('themeDark');
   document.getElementById('scrapeButtonText').textContent = getMessage('scrapeButton');
+  document.getElementById('scrapeExamButtonText').textContent = getMessage('examScrapeButton');
   document.getElementById('previewButtonText').textContent = getMessage('previewButton');
   document.getElementById('exportButtonText').textContent = getMessage('exportButton');
   document.getElementById('progress').textContent = getMessage('progressDefault');
@@ -787,6 +788,62 @@ async function initPopup() {
     }
   });
 
+  // Exam scrape button handler
+  const scrapeExamButton = document.getElementById('scrapeExamButton');
+  scrapeExamButton.addEventListener('click', async () => {
+    scrapeExamButton.disabled = true;
+    progress.className = 'progress loading';
+    progress.textContent = getMessage('examProgressInitializing');
+
+    try {
+      const response = await new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          reject(new Error(getMessage('errorTimeout')));
+        }, WAIT_TIMES.SCRAPING_TIMEOUT);
+
+        chrome.runtime.sendMessage({ action: 'startExamScraping' }, (resp) => {
+          clearTimeout(timeout);
+          if (chrome.runtime.lastError) {
+            reject(new Error(`Lỗi: ${chrome.runtime.lastError.message}`));
+            return;
+          }
+          if (!resp) {
+            reject(new Error(getMessage('errorNoResponse')));
+            return;
+          }
+          resolve(resp);
+        });
+      });
+
+      if (response.success) {
+        progress.className = 'progress success';
+        const count = (response.data || []).length || response.count || 0;
+        progress.textContent = getMessage('examProgressSuccess', [count.toString()]);
+
+        setTimeout(() => {
+          progress.className = 'progress';
+          progress.textContent = getMessage('progressDefault');
+        }, 5000);
+      } else {
+        let errorMsg = response.error || getMessage('errorUnknown');
+        if (errorMsg === 'NOT_LOGGED_IN') {
+          errorMsg = getMessage('errorNotLoggedIn');
+        } else if (errorMsg === 'NAVIGATION_FAILED') {
+          errorMsg = getMessage('errorNavigation');
+        } else if (errorMsg === 'EXAM_TABLE_NOT_FOUND') {
+          errorMsg = getMessage('examTableNotFound');
+        }
+        throw new Error(errorMsg);
+      }
+    } catch (error) {
+      progress.className = 'progress error';
+      progress.textContent = `${getMessage('errorPrefix')} ${error.message}`;
+      console.error('Exam scraping error:', error);
+    } finally {
+      scrapeExamButton.disabled = false;
+    }
+  });
+
   // Preview button handler
   previewButton.addEventListener('click', () => {
     chrome.tabs.create({ url: chrome.runtime.getURL('calendar.html') });
@@ -795,21 +852,23 @@ async function initPopup() {
   // Export button handler
   exportButton.addEventListener('click', async () => {
     try {
-      // Get classes from storage
-      const result = await chrome.storage.local.get(['scrapedClasses']);
+      // Get classes and exams from storage
+      const result = await chrome.storage.local.get(['scrapedClasses', 'scrapedExams']);
       const classes = result.scrapedClasses || [];
+      const exams = result.scrapedExams || [];
       
-      if (classes.length === 0) {
+      if (classes.length === 0 && exams.length === 0) {
         alert(getMessage('errorNoDataToExport'));
         return;
       }
       
-      // Export to ICS
-      exportToIcs(classes);
+      // Export to ICS (classes + exams combined)
+      exportToIcs(classes, exams);
       
       // Show success message
+      const totalCount = classes.length + exams.length;
       progress.className = 'progress success';
-      progress.textContent = getMessage('exportSuccessMessage', [classes.length.toString()]);
+      progress.textContent = getMessage('exportSuccessMessage', [totalCount.toString()]);
       
       // Reset progress after configured delay
       setTimeout(() => {

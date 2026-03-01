@@ -3,6 +3,7 @@
 const FAP_BASE_URL = 'https://fap.fpt.edu.vn';
 const TIMETABLE_URL = 'https://fap.fpt.edu.vn/Report/ScheduleOfWeek.aspx';
 const ATTENDANCE_URL = 'https://fap.fpt.edu.vn/Report/ViewAttendstudent.aspx';
+const EXAM_URL = 'https://fap.fpt.edu.vn/Exam/ScheduleExams.aspx';
 const LOGIN_CHECK_SELECTOR = '#ctl00_divUser';
 const MAX_RETRIES = 3;
 const LOGIN_CACHE_KEY = 'fptu_calendar_login_state';
@@ -874,9 +875,16 @@ async function startScraping(startDate, endDate, waitTime) {
       // If we found an existing tab, make sure it's loaded
       const tabInfo = await chrome.tabs.get(fapTab.id);
       if (tabInfo.status !== 'complete') {
-        await new Promise(resolve => {
+        await new Promise((resolve, reject) => {
+          const timeout = setTimeout(() => {
+            chrome.tabs.onUpdated.removeListener(listener);
+            console.log('Tab loading timeout, proceeding anyway');
+            resolve();
+          }, 10000); // 10 second timeout
+          
           const listener = (updatedTabId, changeInfo) => {
             if (updatedTabId === fapTab.id && changeInfo.status === 'complete') {
+              clearTimeout(timeout);
               chrome.tabs.onUpdated.removeListener(listener);
               setTimeout(resolve, waitTime);
             }
@@ -2052,6 +2060,284 @@ function mergeClassesData(existingClasses, newClasses) {
 /**
  * Save scraped classes with proper flattening for both modes
  */
+// ==========================================
+// EXAM SCHEDULE SCRAPING
+// ==========================================
+
+// Extract exam data from ScheduleExams.aspx page
+async function extractExamData(tabId) {
+  try {
+    const results = await chrome.scripting.executeScript({
+      target: { tabId },
+      func: () => {
+        // Wait for and find exam table inside #ctl00_mainContent_divContent
+        const container = document.querySelector('#ctl00_mainContent_divContent');
+        if (!container) return { success: false, error: 'CONTAINER_NOT_FOUND' };
+
+        const table = container.querySelector('table');
+        if (!table) return { success: false, error: 'TABLE_NOT_FOUND' };
+
+        const rows = table.querySelectorAll('tbody tr');
+        if (!rows || rows.length === 0) return { success: true, exams: [] };
+
+        const exams = [];
+
+        rows.forEach(row => {
+          const cells = row.querySelectorAll('td');
+          // Columns: No | SubjectCode | SubjectName | Date | Room | Time | ExamForm | Exam | DateOfPublication | ...
+          if (cells.length < 8) return;
+
+          const subjectCode = cells[1]?.textContent?.trim() || '';
+          const subjectName = cells[2]?.textContent?.trim() || '';
+          const dateStr = cells[3]?.textContent?.trim() || ''; // DD/MM/YYYY
+          const room = cells[4]?.textContent?.trim() || '';
+          const timeStr = cells[5]?.textContent?.trim() || ''; // 07h30-09h00
+          const examForm = cells[6]?.textContent?.trim() || '';
+          const examType = cells[7]?.textContent?.trim() || ''; // FE, 2NDFE, etc.
+
+          if (!subjectCode || !dateStr || !timeStr || !room) return;
+
+          // Parse date: DD/MM/YYYY → YYYY-MM-DD
+          const dateParts = dateStr.split('/');
+          if (dateParts.length !== 3) return;
+          const isoDate = `${dateParts[2]}-${dateParts[1].padStart(2, '0')}-${dateParts[0].padStart(2, '0')}`;
+
+          // Parse time: "07h30-09h00" → { start: "07:30", end: "09:00" }
+          const timeParts = timeStr.split('-');
+          if (timeParts.length !== 2) return;
+          const startTime = timeParts[0].replace('h', ':');
+          const endTime = timeParts[1].replace('h', ':');
+
+          exams.push({
+            subjectCode,
+            subjectName,
+            date: isoDate,
+            room,
+            time: { start: startTime, end: endTime },
+            examForm,
+            examType,
+            isExam: true,
+            sourcePage: 'exam'
+          });
+        });
+
+        return { success: true, exams };
+      }
+    });
+
+    if (!results || !results[0] || !results[0].result) {
+      return { success: false, error: 'SCRIPT_EXEC_FAILED' };
+    }
+    return results[0].result;
+  } catch (error) {
+    console.error('Error extracting exam data:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+// Assign slot numbers to exams based on start time
+// Ensures no two exams on the same day share the same slot
+function assignExamSlots(exams) {
+  // Group by date
+  const byDate = {};
+  exams.forEach(exam => {
+    if (!byDate[exam.date]) byDate[exam.date] = [];
+    byDate[exam.date].push(exam);
+  });
+
+  Object.values(byDate).forEach(dayExams => {
+    // Sort by start time to process in chronological order
+    dayExams.sort((a, b) => a.time.start.localeCompare(b.time.start));
+
+    const usedSlots = new Set();
+
+    dayExams.forEach(exam => {
+      const [hours, minutes] = exam.time.start.split(':').map(Number);
+      const startMinutes = hours * 60 + minutes;
+
+      // Map to preferred slot based on the FAP time ranges
+      let preferredSlot;
+      if (startMinutes < 9 * 60) {
+        preferredSlot = 1;           // 07:00 - 09:00 → slot 1
+      } else if (startMinutes < 12 * 60) {
+        preferredSlot = 2;           // 09:00 - 12:00 → slot 2
+      } else if (startMinutes < 14 * 60 + 40) {
+        preferredSlot = 3;           // 12:00 - 14:40 → slot 3
+      } else if (startMinutes < 16 * 60 + 10) {
+        preferredSlot = 4;           // 14:40 - 16:10 → slot 4
+      } else {
+        preferredSlot = 5;           // 16:10+ → slot 5
+      }
+
+      // Find first available slot starting from preferred (bump if collision)
+      let assignedSlot = preferredSlot;
+      while (usedSlots.has(assignedSlot)) {
+        assignedSlot++;
+      }
+
+      exam.slot = assignedSlot;
+      usedSlots.add(assignedSlot);
+    });
+  });
+
+  return exams;
+}
+
+// Save scraped exam data to storage (always replaces)
+async function saveScrapedExams(exams) {
+  try {
+    await chrome.storage.local.set({ scrapedExams: exams });
+    console.log(`Saved ${exams.length} exam events (replaced existing)`);
+  } catch (error) {
+    console.error('Error saving scraped exams:', error);
+  }
+}
+
+// Main exam scraping flow
+async function startScrapingExam() {
+  let examTab = null;
+  let shouldCloseTab = false;
+
+  try {
+    console.log('Starting exam schedule scraping...');
+
+    // Step 1: Login check (use cache if available)
+    const cachedLogin = await getCachedLoginState();
+    const needsCheck = cachedLogin !== true;
+
+    // Step 2: Find or create a FAP tab
+    let fapTab = await findExistingFAPTab();
+    if (!fapTab) {
+      fapTab = await chrome.tabs.create({ url: EXAM_URL, active: false });
+      shouldCloseTab = true;
+      await new Promise(r => setTimeout(r, 2000));
+    }
+    examTab = fapTab;
+
+    // Step 3: Check login
+    if (needsCheck) {
+      const isLoggedIn = await checkLogin(examTab.id);
+      if (!isLoggedIn) {
+        await chrome.scripting.executeScript({
+          target: { tabId: examTab.id },
+          func: () => {
+            alert('Bạn chưa đăng nhập vào FAP. Vui lòng đăng nhập và thử lại.');
+          }
+        });
+        throw new Error('NOT_LOGGED_IN');
+      }
+      await markFirstRunCompleted();
+    }
+
+    // Step 4: Navigate to exam schedule page
+    await navigateToUrl(examTab.id, EXAM_URL, WAIT_TIMES.ATTENDANCE_PAGE_READY);
+
+    // Verify still logged in after navigation
+    const stillLoggedIn = await checkLogin(examTab.id);
+    if (!stillLoggedIn) {
+      throw new Error('NOT_LOGGED_IN');
+    }
+    await markFirstRunCompleted();
+
+    // Step 5: Inject overlay
+    const overlayTitle = chrome.i18n.getMessage('examOverlayTitle') || 'Đang trích xuất lịch thi';
+    const overlayMessage = chrome.i18n.getMessage('examOverlayMessage') || 'Đang trích xuất lịch thi cho bạn...';
+    const dismissText = chrome.i18n.getMessage('overlayDismiss') || 'Đóng';
+    const extensionName = chrome.i18n.getMessage('extensionName') || 'FPTU Study Calendar';
+
+    activeScrapingTabs.set(examTab.id, {
+      title: overlayTitle,
+      message: overlayMessage,
+      dismissText,
+      extensionName
+    });
+
+    // Store overlay state in sessionStorage for persistence across page reloads
+    await chrome.scripting.executeScript({
+      target: { tabId: examTab.id },
+      func: (title, message, dismissText, extensionName) => {
+        sessionStorage.setItem('fptu_scraping_active', 'true');
+        sessionStorage.setItem('fptu_overlay_title', title);
+        sessionStorage.setItem('fptu_overlay_message', message);
+        sessionStorage.setItem('fptu_overlay_dismiss', dismissText);
+        sessionStorage.setItem('fptu_extension_name', extensionName);
+        sessionStorage.setItem('fptu_scraping_progress', '');
+      },
+      args: [overlayTitle, overlayMessage, dismissText, extensionName]
+    });
+
+    await injectMinimalOverlay(examTab.id, overlayTitle, overlayMessage, dismissText, '', extensionName);
+
+    // Step 6: Extract exam table
+    const extractResult = await extractExamData(examTab.id);
+
+    if (!extractResult.success) {
+      let errorCode = extractResult.error || 'EXTRACTION_FAILED';
+      if (errorCode === 'CONTAINER_NOT_FOUND' || errorCode === 'TABLE_NOT_FOUND') {
+        errorCode = 'EXAM_TABLE_NOT_FOUND';
+      }
+      throw new Error(errorCode);
+    }
+
+    const exams = extractResult.exams || [];
+    console.log(`Extracted ${exams.length} exam entries`);
+
+    // Step 7: Assign slots to exams
+    assignExamSlots(exams);
+
+    // Step 8: Clean up overlay
+    activeScrapingTabs.delete(examTab.id);
+    try {
+      await chrome.scripting.executeScript({
+        target: { tabId: examTab.id },
+        func: () => {
+          sessionStorage.removeItem('fptu_scraping_active');
+          sessionStorage.removeItem('fptu_overlay_title');
+          sessionStorage.removeItem('fptu_overlay_message');
+          sessionStorage.removeItem('fptu_overlay_dismiss');
+          sessionStorage.removeItem('fptu_extension_name');
+          sessionStorage.removeItem('fptu_scraping_progress');
+          const overlay = document.getElementById('fptu-calendar-overlay');
+          if (overlay) overlay.remove();
+        }
+      });
+    } catch (e) {
+      // Tab may have been closed, ignore
+    }
+
+    // Step 9: Close tab if we created it
+    if (shouldCloseTab && examTab) {
+      try { await chrome.tabs.remove(examTab.id); } catch (e) {}
+    }
+
+    return { success: true, data: exams, count: exams.length };
+
+  } catch (error) {
+    console.error('Exam scraping error:', error);
+
+    // Cleanup overlay on error
+    if (examTab) {
+      activeScrapingTabs.delete(examTab.id);
+      try {
+        await chrome.scripting.executeScript({
+          target: { tabId: examTab.id },
+          func: () => {
+            sessionStorage.removeItem('fptu_scraping_active');
+            const overlay = document.getElementById('fptu-calendar-overlay');
+            if (overlay) overlay.remove();
+          }
+        });
+      } catch (e) {}
+
+      if (shouldCloseTab) {
+        try { await chrome.tabs.remove(examTab.id); } catch (e) {}
+      }
+    }
+
+    return { success: false, error: error.message };
+  }
+}
+
 async function saveScrapedClasses(weeksData, mergeMode = false, mode) {
   try {
     // Handle both fast mode (direct classes array) and detailed mode (weeks structure)
@@ -2244,7 +2530,37 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     chrome.runtime.sendMessage(message).catch(() => {});
     return false; // No response needed
   }
-  
+
+  if (message.action === 'startExamScraping') {
+    console.log('Starting exam schedule scraping...');
+
+    let responseSent = false;
+    const safeSendResponse = (response) => {
+      if (responseSent) return;
+      try {
+        sendResponse(response);
+        responseSent = true;
+      } catch (e) {
+        console.log('Cannot send response (channel may be closed):', e.message);
+        responseSent = true;
+      }
+    };
+
+    startScrapingExam()
+      .then(async (result) => {
+        if (result.success && result.data) {
+          await saveScrapedExams(result.data);
+        }
+        safeSendResponse(result);
+      })
+      .catch((error) => {
+        console.error('Exam scraping error:', error);
+        safeSendResponse({ success: false, error: error.message });
+      });
+
+    return true; // Keep channel open for async response
+  }
+
   return false;
 });
 

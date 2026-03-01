@@ -756,6 +756,27 @@
       color: #ffffff;
     }
 
+    /* Exam event block - visually distinct from classes */
+    .exam-badge {
+      background: rgba(239, 68, 68, 0.15);
+      color: #dc2626;
+    }
+
+    .exam-block[data-text-color="light"] .exam-badge {
+      background: rgba(255, 255, 255, 0.2);
+      color: rgba(255, 255, 255, 0.95);
+    }
+
+    .exam-form-label {
+      font-size: 10px;
+      color: inherit;
+      opacity: 0.72;
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
     /* Links section: pushed to bottom via flexbox */
     .class-links {
       display: flex;

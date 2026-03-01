@@ -6,6 +6,7 @@ function getMessage(key, substitutions = []) {
 }
 
 let allClasses = [];
+let allExams = [];
 let currentWeekStart = null;
 let currentEditingClass = null;
 
@@ -48,6 +49,47 @@ const CLASS_COLORS = {
     '#d946ef'  // Fuchsia 500 - vivid fuchsia
   ]
 };
+
+// Color palette for exam events — 10 red shades spanning light to dark
+const EXAM_COLORS = [
+  '#fca5a5', // Red 300      - light pink-red
+  '#ef4444', // Red 500      - standard red
+  '#b91c1c', // Red 700      - dark red
+  '#7f1d1d', // Red 950      - very dark red
+  '#f43f5e', // Rose 500     - pink-red
+  '#f87171', // Red 400      - light-medium red
+  '#991b1b', // Red 800      - deep red
+  '#be123c', // Rose 700     - dark rose
+  '#dc2626', // Red 600      - medium-dark red
+  '#c2410c', // Orange 700   - warm orange-red
+];
+
+// Assign a stable color per subject code based on sorted order in allExams
+function getExamColor(subjectCode) {
+  const uniqueCodes = [...new Set(allExams.map(e => e.subjectCode))].sort();
+  const idx = uniqueCodes.indexOf(subjectCode);
+  return EXAM_COLORS[idx >= 0 ? idx % EXAM_COLORS.length : 0];
+}
+
+// Derive a soft background tint from a hex color (mix with white/dark)
+function getExamBgColor(hexColor, isDark) {
+  const r = parseInt(hexColor.slice(1, 3), 16);
+  const g = parseInt(hexColor.slice(3, 5), 16);
+  const b = parseInt(hexColor.slice(5, 7), 16);
+  if (isDark) {
+    // Blend with #1a1a1a at ~85% dark
+    const dr = Math.round(r * 0.15 + 26 * 0.85);
+    const dg = Math.round(g * 0.15 + 26 * 0.85);
+    const db = Math.round(b * 0.15 + 26 * 0.85);
+    return `rgb(${dr},${dg},${db})`;
+  } else {
+    // Blend with #ffffff at ~88% white
+    const lr = Math.round(r * 0.12 + 255 * 0.88);
+    const lg = Math.round(g * 0.12 + 255 * 0.88);
+    const lb = Math.round(b * 0.12 + 255 * 0.88);
+    return `rgb(${lr},${lg},${lb})`;
+  }
+}
 
 /**
  * Calculate relative luminance of a color (WCAG formula)
@@ -177,25 +219,32 @@ function getClassColor(subjectCode, isOnline) {
 function updateExportButtonState() {
   const exportBtn = document.getElementById('exportBtn');
   if (exportBtn) {
-    exportBtn.disabled = allClasses.length === 0;
+    exportBtn.disabled = allClasses.length === 0 && allExams.length === 0;
   }
 }
 
 // Load classes from storage
 async function loadClasses() {
   try {
-    const result = await chrome.storage.local.get(['scrapedClasses']);
+    const result = await chrome.storage.local.get(['scrapedClasses', 'scrapedExams']);
     if (result.scrapedClasses) {
       allClasses = result.scrapedClasses;
-      renderCalendar();
     } else {
       allClasses = [];
+    }
+    allExams = result.scrapedExams || [];
+    // Assign isExam flag and filter out exams without a room
+    allExams = allExams.filter(e => e.room && e.room.trim()).map(e => ({ ...e, isExam: true }));
+    if (allClasses.length > 0 || allExams.length > 0) {
+      renderCalendar();
+    } else {
       showEmptyState();
     }
     updateExportButtonState();
   } catch (error) {
     console.error('Error loading classes:', error);
     allClasses = [];
+    allExams = [];
     showEmptyState();
     updateExportButtonState();
   }
@@ -255,20 +304,39 @@ function getClassesForWeek(weekStart) {
   });
 }
 
-// Get all weeks that contain classes
+// Get exams for a specific week
+function getExamsForWeek(weekStart) {
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekEnd.getDate() + 6);
+  weekEnd.setHours(23, 59, 59, 999);
+
+  const weekStartNormalized = new Date(weekStart);
+  weekStartNormalized.setHours(0, 0, 0, 0);
+  const weekEndNormalized = new Date(weekEnd);
+  weekEndNormalized.setHours(23, 59, 59, 999);
+
+  return allExams.filter(exam => {
+    const examDate = parseLocalDate(exam.date);
+    examDate.setHours(0, 0, 0, 0);
+    return examDate >= weekStartNormalized && examDate <= weekEndNormalized;
+  });
+}
+
+// Get all weeks that contain classes or exams
 function getAllWeeksWithClasses() {
-  if (allClasses.length === 0) return [];
+  if (allClasses.length === 0 && allExams.length === 0) return [];
   
   const weekStarts = new Set();
-  allClasses.forEach(cls => {
-    const classDate = parseLocalDate(cls.date);
-    const weekStart = getWeekStart(classDate);
-    // Format as local date to avoid timezone shift from toISOString()
+  const addToWeeks = (item) => {
+    const itemDate = parseLocalDate(item.date);
+    const weekStart = getWeekStart(itemDate);
     const year = weekStart.getFullYear();
     const month = String(weekStart.getMonth() + 1).padStart(2, '0');
     const day = String(weekStart.getDate()).padStart(2, '0');
     weekStarts.add(`${year}-${month}-${day}`);
-  });
+  };
+  allClasses.forEach(addToWeeks);
+  allExams.forEach(addToWeeks);
   
   return Array.from(weekStarts)
     .map(dateStr => parseLocalDate(dateStr))
@@ -392,11 +460,17 @@ function renderWeekView() {
     subtitleEl.textContent = `${formatDate(currentWeekStart)} - ${formatDate(weekEnd)}`;
   }
 
-  // Track which slots have classes
+  // Track which slots have classes or exams
   const slotsWithClasses = new Set();
   weekClasses.forEach(cls => {
     if (cls.slot !== undefined && cls.slot !== null && cls.slot >= 0 && cls.slot <= 12) {
       slotsWithClasses.add(cls.slot);
+    }
+  });
+  const weekExams = getExamsForWeek(currentWeekStart);
+  weekExams.forEach(exam => {
+    if (exam.slot !== undefined && exam.slot !== null && exam.slot >= 0 && exam.slot <= 12) {
+      slotsWithClasses.add(exam.slot);
     }
   });
 
@@ -480,6 +554,39 @@ function renderWeekView() {
       console.warn('Invalid dayIndex or slot:', dayIndex, cls.slot);
     }
   });
+
+  // Add exam blocks - placed in their assigned slot cells
+  weekExams.forEach(exam => {
+    const examDate = parseLocalDate(exam.date);
+    examDate.setHours(0, 0, 0, 0);
+    const weekStartDate = new Date(currentWeekStart);
+    weekStartDate.setHours(0, 0, 0, 0);
+
+    let dayIndex = -1;
+    for (let i = 0; i < 7; i++) {
+      const weekDay = new Date(weekStartDate);
+      weekDay.setDate(weekDay.getDate() + i);
+      weekDay.setHours(0, 0, 0, 0);
+      if (weekDay.getTime() === examDate.getTime()) {
+        dayIndex = i;
+        break;
+      }
+    }
+
+    if (dayIndex >= 0 && dayIndex < 7 && exam.slot !== undefined && exam.slot !== null) {
+      const slotIndex = exam.slot;
+      if (slotIndex >= 0 && slotIndex <= 12) {
+        const dayCell = document.getElementById(`day-cell-${dayIndex}-slot-${slotIndex}`);
+        if (dayCell) {
+          dayCell.classList.add('has-classes');
+          const slotLabel = document.getElementById(`slot-label-${slotIndex}`);
+          if (slotLabel) slotLabel.classList.add('has-classes');
+          const block = createExamBlock(exam);
+          dayCell.appendChild(block);
+        }
+      }
+    }
+  });
 }
 
 // Create class block element
@@ -555,6 +662,46 @@ function createClassBlock(cls) {
   return block;
 }
 
+// Create exam block element (visually distinct from classes, read-only)
+function createExamBlock(exam) {
+  const block = createElement('div', 'class-block exam-block', '');
+
+  const examColor = getExamColor(exam.subjectCode);
+  const isDark = getCurrentTheme() === 'dark';
+  const bgColor = getExamBgColor(examColor, isDark);
+  const textColor = isDark ? 'light' : 'dark';
+
+  block.style.backgroundColor = bgColor;
+  block.style.borderLeftColor = examColor;
+  block.style.borderLeftWidth = '4px';
+  block.style.borderLeftStyle = 'solid';
+  block.style.color = textColor === 'light' ? '#ffffff' : 'var(--color-text-primary)';
+  block.style.setProperty('--base-color', examColor);
+  block.dataset.textColor = textColor;
+  block.dataset.baseColor = examColor;
+
+  const timeStr = `${exam.time.start} - ${exam.time.end}`;
+  const examTypeLabel = exam.examType || (getMessage('examBadge') || 'Thi');
+
+  block.innerHTML = `
+    <div class="class-content">
+      <div class="class-header">
+        <div class="class-name">${exam.subjectCode}</div>
+        <div class="class-badges">
+          <span class="class-badge exam-badge">${examTypeLabel}</span>
+        </div>
+      </div>
+      <div class="class-meta">
+        <div class="class-location">${exam.room || '—'}</div>
+        <div class="class-time">${timeStr}</div>
+      </div>
+      ${exam.examForm ? `<div class="exam-form-label">${exam.examForm}</div>` : ''}
+    </div>
+  `;
+  // Exams are read-only - no click handler
+  return block;
+}
+
 // Get filtered classes based on current filter values
 function getFilteredClasses() {
   const subjectFilter = document.getElementById('subjectFilter');
@@ -587,37 +734,38 @@ function renderListView() {
   const listContent = document.getElementById('listContent');
   listContent.innerHTML = '';
 
-  // Get filtered classes
+  // Get filtered classes and all exams (exams are always shown, not filtered)
   const filteredClasses = getFilteredClasses();
+  const combinedItems = [...filteredClasses, ...allExams];
 
-  if (filteredClasses.length === 0) {
+  if (combinedItems.length === 0) {
     listContent.innerHTML = `<div class="empty-state">${getMessage('emptyState')}</div>`;
-    updateListSidebar([]);
+    updateListSidebar([], []);
     return;
   }
 
-  // Sort classes by date and time
-  const sortedClasses = filteredClasses.sort((a, b) => {
+  // Sort combined list by date and time
+  const sortedItems = combinedItems.sort((a, b) => {
     const dateA = new Date(a.date + 'T' + a.time.start);
     const dateB = new Date(b.date + 'T' + b.time.start);
     return dateA - dateB;
   });
 
-  // Group classes by day
-  const classesByDay = {};
-  sortedClasses.forEach(cls => {
-    const dateKey = cls.date;
-    if (!classesByDay[dateKey]) {
-      classesByDay[dateKey] = [];
+  // Group items by day
+  const itemsByDay = {};
+  sortedItems.forEach(item => {
+    const dateKey = item.date;
+    if (!itemsByDay[dateKey]) {
+      itemsByDay[dateKey] = [];
     }
-    classesByDay[dateKey].push(cls);
+    itemsByDay[dateKey].push(item);
   });
 
   // Render day groups
-  Object.keys(classesByDay).sort().forEach(dateKey => {
-    const dayClasses = classesByDay[dateKey];
-    const firstClass = dayClasses[0];
-    const date = new Date(firstClass.date);
+  Object.keys(itemsByDay).sort().forEach(dateKey => {
+    const dayItems = itemsByDay[dateKey];
+    const firstItem = dayItems[0];
+    const date = new Date(firstItem.date);
     
     // Get day name in Vietnamese
     const dayNames = [
@@ -630,7 +778,7 @@ function renderListView() {
       getMessage('daySaturday')
     ];
     const dayName = dayNames[date.getDay()];
-    const formattedDate = formatDate(firstClass.date);
+    const formattedDate = formatDate(firstItem.date);
     
     // Create day group
     const dayGroup = createElement('div', 'day-group', '');
@@ -642,7 +790,47 @@ function renderListView() {
     
     const dayClassesContainer = createElement('div', 'day-classes', '');
     
-    dayClasses.forEach(cls => {
+    dayItems.forEach(cls => {
+      if (cls.isExam) {
+        // Render exam item with distinct styling
+        const item = createElement('div', 'class-item exam-block', '');
+        const isDark = getCurrentTheme() === 'dark';
+        const examColor = getExamColor(cls.subjectCode);
+        const bgColor = getExamBgColor(examColor, isDark);
+        const textColor = isDark ? 'light' : 'dark';
+
+        item.style.backgroundColor = bgColor;
+        item.style.borderLeftColor = examColor;
+        item.style.borderLeftWidth = '4px';
+        item.style.borderLeftStyle = 'solid';
+        item.style.color = textColor === 'light' ? '#ffffff' : 'var(--color-text-primary)';
+        item.style.setProperty('--base-color', examColor);
+        item.dataset.textColor = textColor;
+        item.dataset.baseColor = examColor;
+
+        const timeStr = `${cls.time.start} - ${cls.time.end}`;
+        const examTypeLabel = cls.examType || (getMessage('examBadge') || 'Thi');
+
+        item.innerHTML = `
+          <div class="class-content">
+            <div class="class-header">
+              <div class="class-name">${cls.subjectCode}</div>
+              <div class="class-time">${timeStr}</div>
+              <div class="class-badges">
+                <span class="class-badge exam-badge">${examTypeLabel}</span>
+              </div>
+            </div>
+            <div class="class-meta">
+              <div class="class-location">${cls.room || '—'}</div>
+            </div>
+            ${cls.examForm ? `<div class="exam-form-label">${cls.examForm}</div>` : ''}
+          </div>
+        `;
+        dayClassesContainer.appendChild(item);
+        return;
+      }
+
+      // Normal class item
       const item = createElement('div', 'class-item', '');
       
       // Get assigned base color for this class
@@ -714,14 +902,15 @@ function renderListView() {
     listContent.appendChild(dayGroup);
   });
   
-  // Update sidebar with statistics
-  updateListSidebar(sortedClasses);
+  // Update sidebar with statistics (pass only filtered classes, exams separate)
+  updateListSidebar(filteredClasses, allExams);
 }
 
 // Update list sidebar with statistics
-function updateListSidebar(filteredClasses) {
-  // Update total count (for filtered classes)
-  const totalCount = filteredClasses.length;
+function updateListSidebar(filteredClasses, exams) {
+  exams = exams || [];
+  // Update total count (classes + exams)
+  const totalCount = filteredClasses.length + exams.length;
   document.getElementById('totalClassCount').textContent = totalCount;
   
   // Calculate subject counts (for filtered classes - shown in statistics)
@@ -733,7 +922,7 @@ function updateListSidebar(filteredClasses) {
     subjectCounts[cls.subjectCode]++;
   });
   
-  // Render subject counts (for filtered classes)
+  // Render subject counts (for filtered classes + exams)
   const subjectCountsContainer = document.getElementById('subjectCounts');
   subjectCountsContainer.innerHTML = '';
   
@@ -747,6 +936,24 @@ function updateListSidebar(filteredClasses) {
     `;
     subjectCountsContainer.appendChild(item);
   });
+
+  // Add exam count items if there are exams
+  if (exams.length > 0) {
+    const examCounts = {};
+    exams.forEach(exam => {
+      if (!examCounts[exam.subjectCode]) examCounts[exam.subjectCode] = 0;
+      examCounts[exam.subjectCode]++;
+    });
+    Object.keys(examCounts).sort().forEach(subjectCode => {
+      const count = examCounts[subjectCode];
+      const item = createElement('div', 'subject-count-item exam-count-item', '');
+      item.innerHTML = `
+        <span class="subject-count-code" style="color: ${getExamColor(subjectCode)}">${subjectCode}</span>
+        <span class="subject-count-number">${count}</span>
+      `;
+      subjectCountsContainer.appendChild(item);
+    });
+  }
   
   // Update subject filter dropdown (always show all available subjects from allClasses)
   const subjectFilter = document.getElementById('subjectFilter');
@@ -1064,20 +1271,21 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Export button handler
   document.getElementById('exportBtn').addEventListener('click', async () => {
     try {
-      // Get classes from storage (all classes, not filtered)
-      const result = await chrome.storage.local.get(['scrapedClasses']);
+      // Get classes and exams from storage (all data, not filtered)
+      const result = await chrome.storage.local.get(['scrapedClasses', 'scrapedExams']);
       const classes = result.scrapedClasses || [];
+      const exams = result.scrapedExams || [];
       
-      if (classes.length === 0) {
+      if (classes.length === 0 && exams.length === 0) {
         alert(getMessage('emptyState') + '. ' + getMessage('emptyStateExtractFirst'));
         return;
       }
       
-      // Export to ICS
-      exportToIcs(classes);
+      // Export to ICS (classes + exams combined)
+      exportToIcs(classes, exams);
       
-      // Show brief success message (optional - could add a toast notification)
-      console.log(`Exported ${classes.length} classes to ICS file`);
+      const totalCount = classes.length + exams.length;
+      console.log(`Exported ${totalCount} events (${classes.length} classes, ${exams.length} exams) to ICS file`);
     } catch (error) {
       console.error('Export error:', error);
       alert(getMessage('errorExportFailed', [error.message]));
@@ -1094,11 +1302,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     
     try {
-      // Clear data from storage
-      await chrome.storage.local.remove(['scrapedClasses']);
+      // Clear classes and exam data from storage
+      await chrome.storage.local.remove(['scrapedClasses', 'scrapedExams']);
       
       // Clear local state
       allClasses = [];
+      allExams = [];
       currentWeekStart = null;
       
       // Show empty state
@@ -1107,7 +1316,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       // Update export button state
       updateExportButtonState();
       
-      console.log('All calendar data cleared');
+      console.log('All calendar and exam data cleared');
     } catch (error) {
       console.error('Error clearing calendar data:', error);
       alert(getMessage('errorClearDataFailed', [error.message]));
@@ -1125,7 +1334,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   function handleThemeChange(theme) {
     applyTheme(theme);
     // Re-render calendar to apply new theme colors
-    if (allClasses.length > 0) {
+    if (allClasses.length > 0 || allExams.length > 0) {
       renderCalendar();
     }
   }
