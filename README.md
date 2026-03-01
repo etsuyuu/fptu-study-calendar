@@ -6,7 +6,7 @@
   </a>
 
   <a href="https://github.com/etsuyuu/fptu-study-calendar/releases/latest" target="_blank">
-    <img src="https://img.shields.io/github/v/release/QingTian1927/fptu-study-calendar?display_name=tag&sort=semver" alt="Latest Release"/>
+    <img src="https://img.shields.io/github/v/release/etsuyuu/fptu-study-calendar?display_name=tag&sort=semver" alt="Latest Release"/>
   </a>
 
   <img src="https://img.shields.io/badge/License-GPLv3-orange" alt="License GPLv3"/>
@@ -21,6 +21,7 @@ A Chrome extension that helps FPT University students export their class schedul
 - **📅 Automatic Schedule Extraction**: Extracts your class schedule from FPTU FAP website
 - **👀 Visual Calendar Preview**: View schedule in week or list view with color-coded classes
 - **📤 Export to ICS Format**: Export to `.ics` file for Google Calendar, Apple Calendar, Outlook, etc.
+- **📝 Exam Schedule Extraction**: Extracts exam schedules from FPTU FAP and includes them in the exported `.ics` file.
 - **🌐 Online/Offline Support**: Distinguishes between online and offline classes
 - **🔗 Quick Access Links**: Direct links to Google Meet, course materials (FLM), and EduNext
 - **✏️ Edit Classes**: Modify class details directly in the calendar view
@@ -46,8 +47,9 @@ A Chrome extension that helps FPT University students export their class schedul
 2. **Open Extension**: Click the FPTU Study Calendar icon in your Chrome toolbar
 3. **Set Date Range**: Select start and end dates (end date auto-adjusts to 3 months ahead)
 4. **Extract Schedule**: Click the extraction button and wait for extraction to complete
-5. **Preview**: Click the preview result button to view your schedule in week or list view
-6. **Export**: Click the export button to download the calendar file, then import it into Google Calendar, Apple Calendar, or Outlook
+5. **Extract Exam Schedule (optional)**: Click the extract exams button in the popup to fetch exam schedules from the FAP exam page.
+6. **Preview**: Click the preview result button to view your schedule in week or list view
+7. **Export**: Click the export button to download the calendar file, then import it into Google Calendar, Apple Calendar, or Outlook
 
 https://github.com/user-attachments/assets/d4d12cd1-3860-4c60-bb10-0af6379ea8cb
 
